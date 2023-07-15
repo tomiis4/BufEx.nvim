@@ -17,12 +17,15 @@ local M = {}
 ---@param port number
 ---@param data Data|string
 ---@return table|nil
-function M.send_data(host, port, data)
+function M.send_data(host, port, data, callback)
     local client = uv.new_tcp()
 
     client:connect(host, port, function(err)
         if err then
             vim.notify(msg['ERROR']['CONNECT'] .. ': ' .. err)
+            if callback then
+                callback(nil, err)
+            end
             return
         end
 
@@ -30,27 +33,26 @@ function M.send_data(host, port, data)
         client:read_start(function(r_err, server_data)
             if r_err then
                 vim.notify(msg['ERROR']['RECEIVE'] .. ': ' .. err)
+                if callback then
+                    callback(nil, r_err)
+                end
                 return
             elseif server_data then
-                print('Client: ' .. server_data)
-                return 1
+                if callback then
+                    callback(server_data, nil)
+                end
             else
-                client:close(function ()
+                client:close(function()
                     vim.notify(msg['ERROR']['CONNECT'])
                 end)
             end
         end)
 
         -- send data to server
-        if data == 'GET' then
-            client:write(data)
-        elseif type(data) == 'table' then
-            client:write(table.concat(data, U.obj_sep))
-        end
+        client:write(data)
     end)
 
     vim.notify(msg['OK']['CONNECT'])
-    return nil
 end
 
 return M

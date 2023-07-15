@@ -1,18 +1,33 @@
 local client = require('bufex.local.client')
--- local server = require('bufex.local.server')
+local server = require('bufex.local.server')
 
 local api = vim.api
 local U = require('bufex.utils')
 local M = {}
 
 ---@param cfg LocalTransfer
-function M.get_buffers(cfg)
+function M.get_buffers(cfg, callback)
     local opts = cfg.opts.server
-    -- local buffers = {}
 
-    local buffers = client.send_data(opts.host, opts.port, 'GET')
+    client.send_data(opts.host, opts.port, 'GET', function (res, err)
+        if err then
+            vim.notify(U.messages['ERROR']['RECEIVE'])
+        else
+            local buffers = {}
 
-    return vim.split(buffers, U.obj_sep)
+            for _, obj in pairs(vim.split(res, U.new_obj_sep)) do
+                local buf = {}
+
+                for _, value in pairs(vim.split(obj, U.obj_sep)) do
+                    table.insert(buf, value)
+                end
+
+                table.insert(buffers, buf)
+            end
+
+            callback(buffers, nil)
+        end
+    end)
 end
 
 ---@param cfg LocalTransfer
@@ -25,10 +40,10 @@ function M.send_buffer(cfg)
     local data = {
         table.concat(buf_content, '\n'),
         buf_name,
-        cfg.password,
+        cfg.password or 'nil',
         cfg.name or U.get_random_name(),
-        cfg.opts.allow_edit,
-        cfg.opts.allow_save,
+        tostring(cfg.opts.allow_edit),
+        tostring(cfg.opts.allow_save),
     }
 
     client.send_data(
@@ -37,5 +52,8 @@ function M.send_buffer(cfg)
         table.concat(data, U.obj_sep)
     )
 end
+
+M.listen = server.listen
+M.close = server.close
 
 return M

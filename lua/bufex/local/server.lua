@@ -3,8 +3,6 @@ local msg = U.messages
 local uv = vim.loop
 local M = {}
 
-local server
-
 ---@param host string
 ---@param port number
 ---@return string|nil
@@ -12,7 +10,7 @@ function M.listen(host, port)
     local shared_buffers = {}
 
     -- create server
-    server = uv.new_tcp()
+    local server = uv.new_tcp()
     server:bind(host, port)
 
     -- listen for connections
@@ -32,9 +30,13 @@ function M.listen(host, port)
             elseif data then
                 if data == 'GET' then
                     -- send all buffers
+                    local buf_data = {}
+
                     for _, v in pairs(shared_buffers) do
-                        client:write(table.concat(v, U.obj_sep))
+                        table.insert(buf_data, table.concat(v, U.obj_sep))
                     end
+
+                    client:write(table.concat(buf_data, U.new_obj_sep))
                 else
                     local separated = vim.split(data, U.obj_sep)
 
@@ -64,13 +66,11 @@ function M.listen(host, port)
     end)
 
     vim.notify(msg['OK']['CREATE'])
-    return nil
+    return server
 end
 
-function M.close()
-    server:close(function(err)
-        server = nil
-
+function M:close(handle)
+    handle:close(function(err)
         if err then
             vim.notify(msg['ERROR']['CLOSE'] .. ': ' .. err)
             return
