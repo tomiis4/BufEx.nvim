@@ -6,7 +6,7 @@ U.messages = {
     ['OK'] = {
         ['CONNECT'] = 'Connection was established successfully.',
         ['CREATE'] = 'Server was created successfully.',
-        ['CLOSE'] = 'Connection was closed successfully.',
+        ['CLOSE'] = 'Server was closed successfully.',
         ['SEND'] = 'Data was sent successfully.',
         ['RECEIVE'] = 'Data was received successfully.',
     },
@@ -18,6 +18,8 @@ U.messages = {
         ['RECEIVE'] = 'Failed to receive data.',
     }
 }
+
+U.obj_sep = '%[DATA_SEPARATOR%]'
 
 ---@return string
 function U.get_random_name()
