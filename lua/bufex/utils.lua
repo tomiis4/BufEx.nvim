@@ -2,6 +2,8 @@ local U = {}
 
 local names = { 'Lion', 'Elephant', 'Tiger', 'Giraffe', 'Monkey', 'Dolphin', 'Penguin', 'Koala', 'Cheetah', 'Gorilla' }
 
+U.obj_sep = 'DATA_SEPARATOR'
+U.new_obj_sep = 'NEW_OBJ_SEPARATOR'
 U.messages = {
     ['OK'] = {
         ['CONNECT'] = 'Connection was established successfully.',
@@ -19,9 +21,6 @@ U.messages = {
     }
 }
 
-U.obj_sep = 'DATA_SEPARATOR'
-U.new_obj_sep = 'NEW_OBJ_SEPARATOR'
-
 ---@return string
 function U.get_random_name()
     math.randomseed(os.time())
@@ -36,24 +35,6 @@ function U.fix_type(s)
         or (s == 'false' and false)
         or tonumber(s)
         or s
-end
-
----@param tbl table
----@param n number? number of indents (default 0)
----@return nil
-function U.print_table(tbl, n)
-    n = n or 0
-
-    print(string.rep('|   ', n) .. '{')
-
-    for _, v in pairs(tbl) do
-        if type(v) == 'table' then
-            U.print_table(v, n + 1)
-        else
-            print(string.rep('|   ', n + 1) .. v .. ',')
-        end
-    end
-    print(string.rep('|   ', n) .. '},')
 end
 
 return U

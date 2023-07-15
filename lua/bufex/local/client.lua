@@ -1,4 +1,3 @@
-local U = require('bufex.utils')
 local msg = require('bufex.utils').messages
 
 local uv = vim.loop
@@ -20,6 +19,7 @@ local M = {}
 function M.send_data(host, port, data, callback)
     local client = uv.new_tcp()
 
+    -- connect to server
     client:connect(host, port, function(err)
         if err then
             vim.notify(msg['ERROR']['CONNECT'] .. ': ' .. err)
@@ -37,11 +37,10 @@ function M.send_data(host, port, data, callback)
                     callback(nil, r_err)
                 end
                 return
-            elseif server_data then
-                if callback then
-                    callback(server_data, nil)
-                end
+            elseif server_data and callback then
+                callback(server_data, nil)
             else
+                -- server is closed
                 client:close(function()
                     vim.notify(msg['ERROR']['CONNECT'])
                 end)
@@ -51,8 +50,6 @@ function M.send_data(host, port, data, callback)
         -- send data to server
         client:write(data)
     end)
-
-    vim.notify(msg['OK']['CONNECT'])
 end
 
 return M

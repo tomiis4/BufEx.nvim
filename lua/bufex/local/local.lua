@@ -9,22 +9,27 @@ local M = {}
 function M.get_buffers(cfg, callback)
     local opts = cfg.opts.server
 
-    client.send_data(opts.host, opts.port, 'GET', function (res, err)
-        if err then
+    client.send_data(opts.host, opts.port, 'GET', function(res, err)
+        if err and callback then
             vim.notify(U.messages['ERROR']['RECEIVE'])
-        else
-            local buffers = {}
+            callback(nil, err)
+            return
+        end
 
-            for _, obj in pairs(vim.split(res, U.new_obj_sep)) do
-                local buf = {}
+        local buffers = {}
 
-                for _, value in pairs(vim.split(obj, U.obj_sep)) do
-                    table.insert(buf, value)
-                end
+        -- loop trough each buffer
+        for _, obj in pairs(vim.split(res, U.new_obj_sep)) do
+            local buf = {}
 
-                table.insert(buffers, buf)
+            -- loop trough each value in buffer
+            for _, value in pairs(vim.split(obj, U.obj_sep)) do
+                table.insert(buf, U.fix_type(value))
             end
+            table.insert(buffers, buf)
+        end
 
+        if callback then
             callback(buffers, nil)
         end
     end)

@@ -26,7 +26,7 @@
 
 ---@type Configuration
 local cfg = {
-    local_transfer  = {
+    local_transfer = {
         name = nil,
         password = nil,
         opts = {

@@ -56,16 +56,15 @@ function M.listen(host, port)
                 local client_id = client:fileno()
 
                 -- delete buffer client send, when they leave
-                client:close(function ()
+                client:close(function()
                     shared_buffers = vim.tbl_filter(function(buf)
-                        return buf[5] ~= client_id
-                    end, shared_buffers)
+                            return buf[5] ~= client_id
+                        end, shared_buffers)
                 end)
             end
         end)
     end)
 
-    vim.notify(msg['OK']['CREATE'])
     return server
 end
 
@@ -76,8 +75,6 @@ function M:close(handle)
             return
         end
     end)
-
-    vim.notify(msg['OK']['CLOSE'])
 end
 
 return M

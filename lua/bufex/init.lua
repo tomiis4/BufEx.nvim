@@ -19,7 +19,7 @@ function M.setup(opts)
         if err then
             vim.notify(U.messages['ERROR']['RECEIVE'])
         else
-            U.print_table(res)
+            -- handle res
         end
     end)
 end
