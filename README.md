@@ -7,25 +7,146 @@
 </p>
 
 
-### For global, you need yours server
+<hr>
 
-FIXME: types!!
+<h3 align="center"> <img src='#'> </h3>
+<h6 align="center"> Colorscheme: dogrun; Font: JetBrainsMono NF </h6>
 
-### Server
-- store send-buffer-data
-    - buf content
-    - buf name
-    - client name
-    - client fileno [get on server]
-    - opts save
-    - opts edit
-- 'GET'
-    - send all stored data
+<hr>
 
-### Float menu
-- keys
-    - `q` = quit
-    - `r` = refresh
-- everyone try to create server
-- connect to the server, msg = 'GET'
-    - display as "Received buffer"
+
+## Usage
+1. method
+    - explanation
+    - <details>
+        <summary> preview </summary>
+        <img src='#'>
+    </details>
+
+## Installation
+
+<details>
+<summary> Using vim-plug </summary>
+
+```vim
+Plug 'tomiis4/BufEx.nvim'
+```
+
+</details>
+
+<details>
+<summary> Using packer </summary>
+
+```lua
+use 'tomiis4/BufEx.nvim'
+```
+
+</details>
+
+<details>
+<summary> Using lazy </summary>
+
+```lua
+{
+    'tomiis4/BufEx.nvim',
+    dependencies = {
+        'nvim-tree/nvim-web-devicons', -- optional
+    },
+    lazy = true,
+    config = function()
+        require('bufex').setup({
+            -- config
+        })
+    end
+},
+```
+
+</details>
+
+
+## Setup
+
+```lua
+require('bufex').setup()
+```
+
+<details>
+<summary> Default configuration </summary>
+
+```lua
+require('hypersonic').setup({
+    local_transfer = {
+        ---@type string|nil nil = name will be ranom selected
+        name = nil,
+
+        ---@type string|nil password will need to be entered each time
+        password = nil,
+        opts = {
+            allow_edit = true,
+            allow_save = false,
+
+            ---@type 'always'|'never'|'ask'
+            need_password = 'ask',
+            server = {
+                port = 4200,
+                host = '127.0.0.1'
+            }
+        }
+    },
+    float = {
+        ---@type 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
+        border = 'rounded',
+
+        ---@type number background blur: 0-100 
+        winblend = 0,
+
+        ---@type boolean allow nvim-web-devicons
+        icons = true,
+        keymap = {
+            select = '<CR>',
+            quit = 'q'
+        }
+    }
+}
+)
+```
+
+</details>
+
+
+## File order
+```
+|   LICENSE
+|   README.md
+|
+\---lua
+    \---bufex
+        |   config.lua
+        |   init.lua
+        |   utils.lua
+        |
+        +---local
+        |       client.lua
+        |       local.lua
+        |       server.lua
+        |
+        \---ui
+                float.lua
+```
+
+
+## Contributors
+
+<table>
+    <tbody>
+        <tr>
+            <td align="center" valign="top" width="14.28%">
+                <a href="https://github.com/tomiis4">
+                <img src="https://avatars.githubusercontent.com/u/87276646?v=4" width="50px;" alt="tomiis4"/><br />
+                <sub><b> tomiis4 </b></sub><br />
+                <sup> founder </sup>
+                </a><br/>
+            </td>
+        </tr>
+    </tbody>
+</table>

@@ -1,5 +1,5 @@
 ---@alias Option 'always'|'never'|'ask'
----@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table<number>
+---@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
 
 ---@class Server
 ---@field port number default 4200
