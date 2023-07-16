@@ -15,7 +15,6 @@ function M.send_data(host, port, data, callback)
     -- connect to server
     client:connect(host, port, function(err)
         if err then
-            vim.notify(msg['ERROR']['CONNECT'] .. ': ' .. err)
             if callback then
                 callback(nil, err)
             end

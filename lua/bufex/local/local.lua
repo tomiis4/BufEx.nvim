@@ -20,7 +20,6 @@ function M.get_buffers(cfg, callback)
 
     client.send_data(opts.host, opts.port, 'GET', function(res, err)
         if err and callback then
-            vim.notify(U.messages['ERROR']['RECEIVE'])
             callback({}, err)
             return
         end
