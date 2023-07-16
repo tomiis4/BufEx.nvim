@@ -3,14 +3,28 @@ local msg = U.messages
 local uv = vim.loop
 local M = {}
 
+---@alias BoolString 'true'|'false'
+
+---@class Buffers
+---@field[1] string buffer content
+---@field[2] string buffer name
+---@field[3] string|'nil' password
+---@field[4] string client name
+---@field[5] number client id
+---@field[6] BoolString opts: allow_edit
+---@field[7] BoolString opts: allow_save
+
+local server = nil
+
 ---@param host string
 ---@param port number
 ---@return string|nil
 function M.listen(host, port)
+    ---@type Buffers[]
     local shared_buffers = {}
 
     -- create server
-    local server = uv.new_tcp()
+    server = uv.new_tcp()
     server:bind(host, port)
 
     -- listen for connections
@@ -32,8 +46,11 @@ function M.listen(host, port)
                     -- send all buffers
                     local buf_data = {}
 
-                    for _, v in pairs(shared_buffers) do
-                        table.insert(buf_data, table.concat(v, U.obj_sep))
+                    -- ignore client id
+                    for i, v in pairs(shared_buffers) do
+                        if i ~= 5 then
+                            table.insert(buf_data, table.concat(v, U.obj_sep))
+                        end
                     end
 
                     client:write(table.concat(buf_data, U.new_obj_sep))
@@ -49,7 +66,6 @@ function M.listen(host, port)
                         client:fileno(), -- client_id
                         separated[5], -- opts: allow_edit
                         separated[6], -- opts: allow_save
-                        separated[7], -- opts: allow_save
                     })
                 end
             else
@@ -65,14 +81,15 @@ function M.listen(host, port)
         end)
     end)
 
-    return server
+    return nil
 end
 
-function M:close(handle)
-    handle:close(function(err)
+---@return nil|string
+function M:close()
+    server:close(function(err)
         if err then
             vim.notify(msg['ERROR']['CLOSE'] .. ': ' .. err)
-            return
+            return err
         end
     end)
 end

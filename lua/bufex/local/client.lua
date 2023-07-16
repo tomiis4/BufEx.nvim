@@ -3,18 +3,11 @@ local msg = require('bufex.utils').messages
 local uv = vim.loop
 local M = {}
 
----@class Data everything is string tho
----@field[1] table<string> buffer
----@field[2] string buffer_name
----@field[3] string|nil password
----@field[4] string owner
----@field[5] boolean allow_edit
----@field[6] boolean allow_save
-
 
 ---@param host string
 ---@param port number
----@param data Data|string
+---@param data 'get'|string
+---@param callback function?
 ---@return table|nil
 function M.send_data(host, port, data, callback)
     local client = uv.new_tcp()

@@ -7,6 +7,10 @@
 </p>
 
 
+### For global, you need yours server
+
+FIXME: types!!
+
 ### Server
 - store send-buffer-data
     - buf content
