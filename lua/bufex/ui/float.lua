@@ -1,50 +1,57 @@
 local api = vim.api
 local U = require('bufex.utils')
+local FloatU = require('bufex.ui.utils')
 local M = {}
-
--- remove
-local local_method = require('bufex.local.local')
 
 ---@class Window
 ---@field[1] number window_id
 ---@field[2] number buffer_id
 
----@type Window[]
-local active_windows = {}
+---@class Buffer
+---@field file string
+---@field author string
+---@field allow_save boolean
+---@field allow_edit boolean
+---@field password string|nil
 
---[[
+local active_windows = {} ---@type Window[]
+local config = require('bufex.config').float ---@type Float
+local is_visible = false
+
+api.nvim_create_augroup('BufEx', {})
+
+local get_data = {
+    {
+        file = 'index.js',
+        author = U.get_random_name(),
+        allow_save = true,
+        allow_edit = true,
+        password = '123'
+    },
+    {
+        file = 'README.md',
+        author = U.get_random_name(),
+        allow_save = true,
+        allow_edit = false,
+        password = '1234'
+    },
+    {
+        file = 'main.go',
+        author = U.get_random_name(),
+        allow_save = false,
+        allow_edit = true,
+        password = nil
+    }
+}
 
 
-|------------------| |------------------|
-| Send buffer      | | Receive buffer   |
-|------------------| |------------------|
-| 1) index.js      | | 1) index.js      |
-| 2) README.md     | |    - tomiis4     |
-| 3) style.css     | |    - edit, save  |
-|                  | |    - password    |
-|                  | |                  |
-|------------------| |------------------|
+local function clear_buffers()
+    -- clean autocmds
+    api.nvim_clear_autocmds({
+        group = 'BufEx'
+    })
 
-
-|---------------------------------------|
-| Send buffer                           |
-|---------------------------------------|
-| - index.js                            |
-|   - edit = TRUE                       |
-|   - save = FALSE                      |
-|   - password = FALSE                  |
-|                                       |
-|---------------------------------------|
-
-
-|-Enter password------------------------|
-|                                       |
-|---------------------------------------|
-
-
-]]
-
-local function delete_buffers()
+    -- clean windows/buffers
     for _, v in pairs(active_windows) do
         local win, buf = v[1], v[2]
 
@@ -60,117 +67,118 @@ local function delete_buffers()
     active_windows = {}
 end
 
----@param config Float
 ---@param content table
-function M.select_buffer(config, content)
-    delete_buffers()
+---@param hl table
+function M.select_buffer(content, hl)
+    clear_buffers()
+    local buf, win = FloatU.setup_win_buf('Send buffer', 'left', content, config)
 
-    -- setup buffer
-    local buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_lines(buf, 0, -1, true, content)
+    -- autocmd for cursorline
+    api.nvim_create_autocmd(FloatU.cmd_events, {
+        buffer = buf,
+        group = 'BufEx',
+        callback = function(e)
+            local ev = e.event
 
+            if ev == 'WinClosed' then
+                M.toggle_window()
+            else
+                local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
-    local height = vim.o.lines
-    local width = vim.o.columns
-    local pos = {
-        width = math.ceil(width * 0.35),
-        height = math.ceil(height * 0.7),
-        row = math.ceil(height * 0.075),
-        col = math.ceil(width * 0.15),
-    }
+                api.nvim_set_option_value(
+                    'cursorline',
+                    set_line,
+                    { buf = buf }
+                )
+            end
+        end
+    })
 
+    table.insert(active_windows, { win, buf })
+    api.nvim_set_option_value('number', true, { buf = buf })
 
-    -- create window
-    local win_opts = {
-        relative = 'editor',
+    -- add hl
+    local ns = api.nvim_create_namespace('BufEx')
+    print(vim.inspect(hl))
+    for _, v in pairs(hl) do
+        api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 1, 3)
+    end
 
-        width = pos.width,
-        height = pos.height,
-        row = pos.row,
-        col = pos.col,
-
-        title = ' Send buffer ',
-        title_pos = 'center',
-
-        style = "minimal",
-        border = config.border,
-    }
-
-
-    local win = api.nvim_open_win(buf, true, win_opts)
-    table.insert(active_windows, {win, buf})
-
-
-    -- configure window
-    api.nvim_win_set_option(win, "winblend", config.winblend)
-    api.nvim_set_option_value('modifiable', false, { buf = buf })
-    api.nvim_set_option_value('buflisted', false, { buf = buf })
-    api.nvim_set_option_value('buflisted', false, { buf = buf })
-    api.nvim_set_option_value('cursorline', true, { buf = buf })
-
-
-    -- add keymaps
-    U.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
-    U.keyset(buf, config.keymap.quit, ':echo "Quit"<cr>')
+    -- select buffers by number
+    for i = 0, 9 do
+        FloatU.keyset(buf, tostring(i), i .. 'gg')
+    end
 end
 
----@param config Float
----@param content table
-function M.receive_buffer(config, content)
-    -- delete_buffers()
+---@param data Buffer[]
+function M.receive_buffer(data)
+    local content, hl = FloatU.convert_buf_info(data)
+    local buf, win = FloatU.setup_win_buf('Receive buffers', 'right', content, config)
 
-    -- setup buffer
-    local buf = api.nvim_create_buf(false, true)
-    api.nvim_buf_set_lines(buf, 0, -1, true, content)
+    -- autocmd for cursorline
+    api.nvim_create_autocmd(FloatU.cmd_events, {
+        buffer = buf,
+        group = 'BufEx',
+        callback = function(e)
+            local ev = e.event
 
+            if ev == 'WinClosed' then
+                M.toggle_window()
+            else
+                local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
-    local height = vim.o.lines
-    local width = vim.o.columns
-    local pos = {
-        width = math.ceil(width * 0.35),
-        height = math.ceil(height * 0.7),
-        row = math.ceil(height * 0.775),
-        col = math.ceil(width * 0.5),
-    }
+                api.nvim_set_option_value(
+                    'cursorline',
+                    set_line,
+                    { buf = buf }
+                )
+            end
+        end
+    })
 
+    table.insert(active_windows, { win, buf })
 
-    -- create window
-    local win_opts = {
-        relative = 'editor',
+    local ns = api.nvim_create_namespace('BufEx')
+    for _, v in pairs(hl) do
+        api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 0, -1)
+    end
 
-        width = pos.width,
-        height = pos.height,
-        row = pos.row,
-        col = pos.col,
-
-        title = ' Receive buffers ',
-        title_pos = 'center',
-
-        style = "minimal",
-        border = config.border,
-    }
-
-
-    local win = api.nvim_open_win(buf, true, win_opts)
-    table.insert(active_windows, {win, buf})
-
-
-    -- configure window
-    api.nvim_win_set_option(win, "winblend", config.winblend)
-    api.nvim_set_option_value('modifiable', false, { buf = buf })
-    api.nvim_set_option_value('buflisted', false, { buf = buf })
-    api.nvim_set_option_value('buflisted', false, { buf = buf })
-    api.nvim_set_option_value('cursorline', true, { buf = buf })
-
-
-    -- add keymaps
-    U.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
-    U.keyset(buf, config.keymap.quit, ':echo "Quit"<cr>')
+    api.nvim_set_current_win(win)
 end
 
----@param config Float
-function M.toggle_window(config, content)
-    
+function M.redraw()
+    if is_visible then
+        clear_buffers()
+
+        M.select_buffer({ 'index.lua', 'README.md' })
+
+        M.receive_buffer({ 'buffer' })
+    end
+end
+
+function M.toggle_window()
+    is_visible = not is_visible
+
+    clear_buffers()
+
+    if is_visible then
+        local buffers, hl = FloatU.get_buffers(config.icons)
+        M.select_buffer(buffers, hl)
+        M.receive_buffer(get_data)
+
+        -- keymap to switch windows
+        local win_0, buf_0 = active_windows[1][1], active_windows[1][2]
+        local win_1, buf_1 = active_windows[2][1], active_windows[2][2]
+        local next_win = config.keymap.next_window
+
+        FloatU.keyset(buf_0, next_win, ':lua vim.api.nvim_set_current_win(' .. win_1 .. ')<cr>')
+        FloatU.keyset(buf_1, next_win, ':lua vim.api.nvim_set_current_win(' .. win_0 .. ')<cr>')
+    end
+end
+
+---@param cfg Float
+function M.setup(cfg)
+    config = cfg
 end
 
 return M

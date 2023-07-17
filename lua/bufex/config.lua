@@ -14,6 +14,7 @@
 ---@class Keymap
 ---@field select string default '<CR>'
 ---@field quit string default 'q'
+---@field next_window string default 'n'
 
 ---@class LocalTransfer
 ---@field name string|nil default nil (name will be generated random)
@@ -51,7 +52,8 @@ local cfg = {
         icons = true,
         keymap = {
             select = '<CR>',
-            quit = 'q'
+            quit = 'q',
+            next_window = 'n',
         }
     }
 }
