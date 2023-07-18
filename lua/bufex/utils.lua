@@ -17,6 +17,21 @@ local U = {}
 ---@field height number
 
 
+---@param tbl table
+---@param key string|number
+---@return table
+function U.remove_key(tbl, key)
+    local main = {}
+
+    for k, v in pairs(tbl) do
+        if k ~= key then
+            main[k] = v
+        end
+    end
+
+    return main
+end
+
 ---@return string
 function U.get_random_name()
     math.randomseed(os.time())

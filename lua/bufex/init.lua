@@ -1,4 +1,5 @@
 local config = require('bufex.config')
+local is_enabled = false
 local U = require('bufex.utils')
 local M = {}
 
@@ -10,17 +11,33 @@ function M.setup(opts)
 
     -- setup utils
     U.init(config)
+end
 
-    -- testing server/client
-    -- local l = require('bufex.local.local')
-    --
-    -- l.listen('127.0.0.1', 6969)
-    --
-    -- l.get_buffers(config.local_transfer, vim.schedule_wrap(function(res, err)
-    --
-    --     local buf = vim.api.nvim_create_buf(false, true)
-    --     print(buf)
-    -- end))
+local lt = require('bufex.local.local')
+local lt_cfg = config.local_transfer
+local lt_server = lt_cfg.opts.server
+
+function M.toggle()
+    is_enabled = not is_enabled
+
+    -- try start server
+    lt.listen(lt_server.host, lt_server.port)
+
+    -- close server
+    if not is_enabled then
+        lt.close()
+        return
+    end
+
+    -- toggle ui
+    -- TODO
+    lt.send_buffer(lt_cfg, 0) -- 0 for current
+
+    -- get data from server
+    -- TODO err, types
+    lt.get_buffers(lt_cfg, vim.schedule_wrap(function(res, err)
+        vim.print(vim.inspect(res[1]['allow_edit']))
+    end))
 end
 
 return M

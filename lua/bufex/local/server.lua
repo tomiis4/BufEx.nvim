@@ -43,30 +43,28 @@ function M.listen(host, port)
                 vim.notify(msg['ERROR']['RECEIVE'] .. ': ' .. r_err)
             elseif data then
                 if data == 'GET' then
+                    if #shared_buffers == 0 then
+                        client:write(vim.inspect({}))
+                        return
+                    end
+
                     -- send all buffers
                     local buf_data = {}
 
                     -- ignore client id
-                    for i, v in pairs(shared_buffers) do
-                        if i ~= 5 then
-                            table.insert(buf_data, table.concat(v, U.obj_sep))
-                        end
+                    for _, buf in pairs(shared_buffers) do
+                        buf = U.remove_key(buf, 'client_id')
+
+                        table.insert(buf_data, buf)
                     end
 
-                    client:write(table.concat(buf_data, U.new_obj_sep))
+                    client:write(vim.inspect(buf_data))
                 else
-                    local separated = vim.split(data, U.obj_sep)
+                    local decoder = loadstring or load
+                    local decoded_data = decoder('return ' .. data)()
 
-                    -- write all buffers
-                    table.insert(shared_buffers, {
-                        separated[1], -- buffer content
-                        separated[2], -- buffer name
-                        separated[3], -- password
-                        separated[4], -- client_name
-                        client:fileno(), -- client_id
-                        separated[5], -- opts: allow_edit
-                        separated[6], -- opts: allow_save
-                    })
+                    decoded_data['client_id'] = client:fileno()
+                    table.insert(shared_buffers, decoded_data)
                 end
             else
                 local client_id = client:fileno()
@@ -74,7 +72,7 @@ function M.listen(host, port)
                 -- delete buffer client send, when they leave
                 client:close(function()
                     shared_buffers = vim.tbl_filter(function(buf)
-                            return buf[5] ~= client_id
+                            return buf['client_id'] ~= client_id
                         end, shared_buffers)
                 end)
             end
@@ -85,7 +83,7 @@ function M.listen(host, port)
 end
 
 ---@return nil|string
-function M:close()
+function M.close()
     server:close(function(err)
         if err then
             vim.notify(msg['ERROR']['CLOSE'] .. ': ' .. err)
