@@ -24,25 +24,27 @@ function M.get_buffers(cfg, callback)
             return
         end
 
-        ---@type SeparatedBuffers[]
-        local buffers = {}
-
-        -- loop trough each buffer
-        for _, obj in pairs(vim.split(res, U.new_obj_sep)) do
-            local values = vim.split(obj, U.obj_sep)
-
-            table.insert(buffers, {
-                buffer_content = values[1],
-                buffer_name = values[2],
-                password = U.fix_type(values[3]),
-                client_name = values[4],
-                allow_edit = U.fix_type(values[5]),
-                allow_save = U.fix_type(values[6]),
-            })
-        end
+        -- ---@type SeparatedBuffers[]
+        -- local buffers = {}
+        --
+        -- -- loop trough each buffer
+        -- for _, obj in pairs(vim.split(res, U.new_obj_sep)) do
+        --     local values = vim.split(obj, U.obj_sep)
+        --
+        --     table.insert(buffers, {
+        --         buffer_content = values[1],
+        --         buffer_name = values[2],
+        --         password = U.fix_type(values[3]),
+        --         client_name = values[4],
+        --         allow_edit = U.fix_type(values[5]),
+        --         allow_save = U.fix_type(values[6]),
+        --     })
+        -- end
 
         if callback then
-            callback(buffers, nil)
+            -- callback(buffers, nil)
+            vim.loop.stop()
+            callback(res, nil)
         end
     end)
 end

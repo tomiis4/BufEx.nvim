@@ -1,3 +1,5 @@
+-- DELETE THIS FILE
+
 local M = {}
 
 ---@param str string

@@ -1,8 +1,4 @@
-local local_method = require('bufex.local.local')
-local UI = require('bufex.ui.float')
-
 local config = require('bufex.config')
-local api = vim.api
 local U = require('bufex.utils')
 local M = {}
 
@@ -11,17 +7,20 @@ local M = {}
 function M.setup(opts)
     ---@type Configuration
     config = vim.tbl_deep_extend('force', config, opts or {})
-    -- UI.setup(config.float)
-    --
-    -- UI.toggle_window()
-    --
-    -- api.nvim_create_autocmd('VimResized', {
-    --     callback = function ()
-    --         UI.redraw()
-    --     end
-    -- })
 
-    require('bufex.local.convert')
+    -- setup utils
+    U.init(config)
+
+    -- testing server/client
+    -- local l = require('bufex.local.local')
+    --
+    -- l.listen('127.0.0.1', 6969)
+    --
+    -- l.get_buffers(config.local_transfer, vim.schedule_wrap(function(res, err)
+    --
+    --     local buf = vim.api.nvim_create_buf(false, true)
+    --     print(buf)
+    -- end))
 end
 
 return M
