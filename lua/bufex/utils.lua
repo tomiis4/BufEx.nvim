@@ -1,4 +1,3 @@
-local api = vim.api
 local U = {}
 
 local names = { 'Lion', 'Elephant', 'Tiger', 'Giraffe', 'Monkey', 'Dolphin', 'Penguin', 'Koala', 'Cheetah', 'Gorilla' }

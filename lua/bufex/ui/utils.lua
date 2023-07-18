@@ -68,12 +68,9 @@ function U.keyset(buf, key, action, mode, opts)
     api.nvim_buf_set_keymap(buf, mode, key, action, opts)
 end
 
--- file = 'index.js',
--- author = U.get_random_name(),
--- allow_save = true,
--- allow_edit = true,
--- password = '123'
 
+---@param data Buffer
+---@return string|nil
 local function get_buf_opts_info(data)
     local save = data.allow_save
     local edit = data.allow_edit
@@ -89,6 +86,9 @@ local function get_buf_opts_info(data)
     return opts_save or opts_edit
 end
 
+---@param data Buffer[]
+---@return table main
+---@return table hl
 function U.convert_buf_info(data)
     local main = {}
     local hl = {}
@@ -124,8 +124,8 @@ end
 ---@param position 'left'|'right'
 ---@param lines table
 ---@param config Float
----@return number
----@return number
+---@return number buffer
+---@return number window
 function U.setup_win_buf(title, position, lines, config)
     -- setup buffer
     local buf = api.nvim_create_buf(false, true)
@@ -171,15 +171,13 @@ function U.setup_win_buf(title, position, lines, config)
     api.nvim_set_option_value('modifiable', false, { buf = buf })
     api.nvim_set_option_value('buflisted', false, { buf = buf })
 
-    -- add keymaps
-    U.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
-    U.keyset(buf, config.keymap.quit, ':echo "Quit"<cr>')
-
     -- add hl
     for i = 0, #lines do
         api.nvim_buf_add_highlight(buf, ns, 'Normal', i, 0, -1)
     end
     api.nvim_set_option_value('winhighlight', 'FloatBorder:Normal', { win = win })
+    -- add keymaps
+    U.keyset(buf, config.keymap.quit, ':BufexToggle<cr>')
 
     return buf, win
 end

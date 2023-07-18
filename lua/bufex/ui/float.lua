@@ -36,7 +36,7 @@ local get_data = {
         password = '1234'
     },
     {
-        file = 'main.go',
+        file = 'main.go,',
         author = U.get_random_name(),
         allow_save = false,
         allow_edit = true,
@@ -67,10 +67,10 @@ local function clear_buffers()
     active_windows = {}
 end
 
----@param content table
----@param hl table
-function M.select_buffer(content, hl)
+function M.select_buffer()
     clear_buffers()
+
+    local content, hl = FloatU.get_buffers(config.icons)
     local buf, win = FloatU.setup_win_buf('Send buffer', 'left', content, config)
 
     -- autocmd for cursorline
@@ -99,10 +99,12 @@ function M.select_buffer(content, hl)
 
     -- add hl
     local ns = api.nvim_create_namespace('BufEx')
-    print(vim.inspect(hl))
     for _, v in pairs(hl) do
         api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 1, 3)
     end
+
+    -- add keymaps
+    FloatU.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
 
     -- select buffers by number
     for i = 0, 9 do
@@ -162,8 +164,7 @@ function M.toggle_window()
     clear_buffers()
 
     if is_visible then
-        local buffers, hl = FloatU.get_buffers(config.icons)
-        M.select_buffer(buffers, hl)
+        M.select_buffer()
         M.receive_buffer(get_data)
 
         -- keymap to switch windows
