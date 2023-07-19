@@ -112,7 +112,6 @@ end
 ---@param data Buffers[]
 local function receive_buffer(data)
     local content, hl = D.convert_buf_info(data)
-    vim.print(vim.inspect(content))
     local size = {
         width = 0.35,
         height = 0.7

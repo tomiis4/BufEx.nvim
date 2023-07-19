@@ -5,7 +5,6 @@ local U = require('bufex.utils')
 local UI = require('bufex.ui.float')
 local M = {}
 
-
 local lt = require('bufex.local.local')
 local lt_cfg = config.local_transfer
 local lt_server = lt_cfg.opts.server
@@ -28,9 +27,7 @@ function M.toggle()
 
     -- close server
     if is_enabled == false then
-        lt.close()
         UI.toggle_window({})
-        vim.print('Window closed')
         return
     end
 
@@ -38,17 +35,14 @@ function M.toggle()
     -- send buffer 
     lt.send_buffer(lt_cfg, 0) -- 0 for current
 
-
     -- get data from server
     lt.get_buffers(lt_cfg, vim.schedule_wrap(function(res, err)
-        print('Getting data')
         if err then
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
             return
         end
 
         UI.toggle_window(res)
-        print('GOT DATA: ' .. vim.inspect(res))
     end))
 end
 

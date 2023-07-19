@@ -31,7 +31,6 @@ function M.send_data(host, port, data, callback)
                 return
             elseif server_data and callback then
                 callback(server_data, nil)
-                print('Client has closed')
             else
                 -- server is closed
                 client:close(function()

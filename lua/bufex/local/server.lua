@@ -29,7 +29,9 @@ function M.listen(host, port)
 
         -- listen for data from client
         client:read_start(function(r_err, data)
-            if data and not r_err then
+            if r_err then
+                return r_err
+            elseif data then
                 if data == 'GET' then
                     if #shared_buffers == 0 then
                         client:write(vim.inspect({}))
