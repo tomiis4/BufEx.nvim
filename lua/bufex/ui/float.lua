@@ -1,18 +1,11 @@
 local api = vim.api
 local U = require('bufex.utils')
-local FloatU = require('bufex.ui.utils')
+local D = require('bufex.data')
 local M = {}
 
 ---@class Window
 ---@field[1] number window_id
 ---@field[2] number buffer_id
-
----@class Buffer
----@field file string
----@field author string
----@field allow_save boolean
----@field allow_edit boolean
----@field password string|nil
 
 local active_windows = {} ---@type Window[]
 local config = require('bufex.config').float ---@type Float
@@ -67,21 +60,25 @@ local function clear_buffers()
     active_windows = {}
 end
 
-function M.select_buffer()
+local function select_buffer()
     clear_buffers()
 
-    local content, hl = FloatU.get_buffers(config.icons)
-    local buf, win = FloatU.setup_win_buf('Send buffer', 'left', content, config)
+    local content, hl = U.get_all_buffers()
+    local size = {
+        width = 0.35,
+        height = 0.7
+    }
+    local buf, win = U.setup_win_buf('Send buffer', 'left', size, content)
 
-    -- autocmd for cursorline
-    api.nvim_create_autocmd(FloatU.cmd_events, {
+    -- autocmd for cursorline and win close
+    api.nvim_create_autocmd(D.cmd_events, {
         buffer = buf,
         group = 'BufEx',
         callback = function(e)
             local ev = e.event
 
             if ev == 'WinClosed' then
-                M.toggle_window()
+                M.toggle_window({})
             else
                 local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
@@ -104,28 +101,33 @@ function M.select_buffer()
     end
 
     -- add keymaps
-    FloatU.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
+    U.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
 
     -- select buffers by number
     for i = 0, 9 do
-        FloatU.keyset(buf, tostring(i), i .. 'gg')
+        U.keyset(buf, tostring(i), i .. 'gg')
     end
 end
 
----@param data Buffer[]
-function M.receive_buffer(data)
-    local content, hl = FloatU.convert_buf_info(data)
-    local buf, win = FloatU.setup_win_buf('Receive buffers', 'right', content, config)
+---@param data Buffers[]
+local function receive_buffer(data)
+    local content, hl = D.convert_buf_info(data)
+    vim.print(vim.inspect(content))
+    local size = {
+        width = 0.35,
+        height = 0.7
+    }
+    local buf, win = U.setup_win_buf('Receive buffers', 'right', size, content)
 
-    -- autocmd for cursorline
-    api.nvim_create_autocmd(FloatU.cmd_events, {
+    -- autocmd for cursorline and win close
+    api.nvim_create_autocmd(D.cmd_events, {
         buffer = buf,
         group = 'BufEx',
         callback = function(e)
             local ev = e.event
 
             if ev == 'WinClosed' then
-                M.toggle_window()
+                M.toggle_window({})
             else
                 local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
@@ -152,34 +154,42 @@ function M.redraw()
     if is_visible then
         clear_buffers()
 
-        M.select_buffer({ 'index.lua', 'README.md' })
+        select_buffer()
 
-        M.receive_buffer({ 'buffer' })
+        -- FIXME!!
+        receive_buffer({})
     end
 end
 
-function M.toggle_window()
+---@param received_data Buffers[]
+function M.toggle_window(received_data)
     is_visible = not is_visible
 
     clear_buffers()
 
     if is_visible then
-        M.select_buffer()
-        M.receive_buffer(get_data)
+        select_buffer()
+        receive_buffer(received_data)
 
         -- keymap to switch windows
         local win_0, buf_0 = active_windows[1][1], active_windows[1][2]
         local win_1, buf_1 = active_windows[2][1], active_windows[2][2]
         local next_win = config.keymap.next_window
 
-        FloatU.keyset(buf_0, next_win, ':lua vim.api.nvim_set_current_win(' .. win_1 .. ')<cr>')
-        FloatU.keyset(buf_1, next_win, ':lua vim.api.nvim_set_current_win(' .. win_0 .. ')<cr>')
+        U.keyset(buf_0, next_win, ':lua vim.api.nvim_set_current_win(' .. win_1 .. ')<cr>')
+        U.keyset(buf_1, next_win, ':lua vim.api.nvim_set_current_win(' .. win_0 .. ')<cr>')
     end
 end
 
 ---@param cfg Float
 function M.setup(cfg)
     config = cfg
+
+    api.nvim_create_autocmd('VimResized', {
+        callback = function ()
+            M.redraw()
+        end
+    })
 end
 
 return M

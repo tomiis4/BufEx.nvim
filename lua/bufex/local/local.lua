@@ -5,8 +5,8 @@ local api = vim.api
 local U = require('bufex.utils')
 local M = {}
 
----@class SeparatedBuffers
----@field buffer_content string
+---@class Buffers
+---@field content string
 ---@field buffer_name string
 ---@field password string|nil
 ---@field client_name string
@@ -14,7 +14,7 @@ local M = {}
 ---@field allow_save boolean
 
 ---@param cfg LocalTransfer
----@param callback fun(res: SeparatedBuffers[], err: string|nil)
+---@param callback fun(res: Buffers[], err: string|nil)
 function M.get_buffers(cfg, callback)
     local opts = cfg.opts.server
 

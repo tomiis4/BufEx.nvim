@@ -1,18 +1,8 @@
 local U = require('bufex.utils')
-local msg = U.messages
+local D = require('bufex.data')
+local msg = D.messages
 local uv = vim.loop
 local M = {}
-
----@alias BoolString 'true'|'false'
-
----@class Buffers
----@field[1] string buffer content
----@field[2] string buffer name
----@field[3] string|'nil' password
----@field[4] string client name
----@field[5] number client id
----@field[6] BoolString opts: allow_edit
----@field[7] BoolString opts: allow_save
 
 local server = nil
 
@@ -39,9 +29,7 @@ function M.listen(host, port)
 
         -- listen for data from client
         client:read_start(function(r_err, data)
-            if r_err then
-                vim.notify(msg['ERROR']['RECEIVE'] .. ': ' .. r_err)
-            elseif data then
+            if data and not r_err then
                 if data == 'GET' then
                     if #shared_buffers == 0 then
                         client:write(vim.inspect({}))
@@ -84,12 +72,8 @@ end
 
 ---@return nil|string
 function M.close()
-    server:close(function(err)
-        if err then
-            vim.notify(msg['ERROR']['CLOSE'] .. ': ' .. err)
-            return err
-        end
-    end)
+    server:close()
+    server = nil
 end
 
 return M

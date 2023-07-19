@@ -32,8 +32,8 @@ function D.get_win_size(position, size)
     if position == 'left' then
         return {
             width = ceil(width * size.width),
-            height = ceil(width * size.width),
-            row = ceil(height / 2 - size.height / 2 * height),
+            height = ceil(height * size.height),
+            row = ceil(height * ((1 - size.height) / 4)),
             col = ceil(width / 2 - size.width * width)
         }
     end
@@ -41,8 +41,8 @@ function D.get_win_size(position, size)
     if position == 'right' then
         return {
             width = ceil(width * size.width),
-            height = ceil(width * size.width),
-            row = ceil(height / 2 - size.height / 2 * height),
+            height = ceil(height * size.height),
+            row = ceil(height * ((1 - size.height) / 4)),
             col = ceil(width / 2 - size.width * width + width * size.width + 3)
         }
     end
@@ -50,18 +50,18 @@ function D.get_win_size(position, size)
     -- center is default
     return {
         width = ceil(width * size.width),
-        height = ceil(width * size.width),
-        row = ceil(height / 2 - size.height * height / 2),
+        height = ceil(height * size.height),
+        row = ceil(height * ((1 - size.height) / 4)),
         col = ceil(width / 2 - size.width * width / 2)
     }
 end
 
 --- convert shadred buffers to one array
----@param data Buffer[]
+---@param data Buffers[]
 ---@return table main
 ---@return table hl
 function D.convert_buf_info(data)
-    ---@param data_buf Buffer
+    ---@param data_buf Buffers
     ---@return string|nil
     local function get_buf_opts_info(data_buf)
         local save = data_buf.allow_save
@@ -82,15 +82,13 @@ function D.convert_buf_info(data)
     local hl = {}
 
     for k, v in pairs(data) do
-        local file = v.file
-        -- FIXME
-        -- local icon, color = U.get_icon(file)
+        local file = v.buffer_name
         local icon, color = '', ''
 
-        table.insert(main, ' ' .. icon .. ' ' .. v.file)
+        table.insert(main, ' ' .. icon .. ' ' .. v.buffer_name)
         table.insert(hl, { #main - 1, color })
 
-        local name = ' ' .. v.author
+        local name = ' ' .. v.client_name
         local opts = '󱃕 ' .. get_buf_opts_info(v)
         local password = v.password and '󰒃 password' or nil
 

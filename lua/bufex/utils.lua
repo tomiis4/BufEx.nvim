@@ -32,6 +32,18 @@ function U.remove_key(tbl, key)
     return main
 end
 
+---@param buf number
+---@param key string
+---@param action string|function
+---@param mode string? default 'n'
+---@param opts table?
+function U.keyset(buf, key, action, mode, opts)
+    opts = opts or { nowait = true, silent = true }
+    mode = mode or 'n'
+
+    api.nvim_buf_set_keymap(buf, mode, key, action, opts)
+end
+
 ---@return string
 function U.get_random_name()
     math.randomseed(os.time())
@@ -137,7 +149,8 @@ function U.setup_win_buf(title, position, size, lines)
     return buf, win
 end
 
-function U.init(cfg)
+---@param cfg Configuration
+function U.setup(cfg)
     config = cfg
 end
 
