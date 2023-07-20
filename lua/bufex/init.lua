@@ -11,6 +11,8 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
+-- TODO: real-time connection?
+
 ---@param opts? Configuration
 function M.setup(opts)
     ---@type Configuration

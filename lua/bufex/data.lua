@@ -1,4 +1,3 @@
--- local U = require('bufex.utils')
 local D = {}
 
 D.names = { 'Lion', 'Elephant', 'Tiger', 'Giraffe', 'Monkey', 'Dolphin', 'Penguin', 'Koala', 'Cheetah', 'Gorilla' }
@@ -27,32 +26,32 @@ D.cmd_events = { 'BufEnter', 'BufLeave', 'WinClosed', 'WinEnter' }
 function D.get_win_position(position, size)
     local height = vim.o.lines
     local width = vim.o.columns
-    local ceil = math.ceil
+    local floor = math.floor
 
     if position == 'left' then
         return {
-            width = ceil(width * size.width),
-            height = ceil(height * size.height),
-            row = ceil(height * ((1 - size.height) / 4)),
-            col = ceil(width / 2 - size.width * width)
+            width = floor(width * size.width),
+            height = floor(height * size.height),
+            row = floor(height * ((1 - size.height) / 4)),
+            col = floor(width / 2 - size.width * width)
         }
     end
 
     if position == 'right' then
         return {
-            width = ceil(width * size.width),
-            height = ceil(height * size.height),
-            row = ceil(height * ((1 - size.height) / 4)),
-            col = ceil(width / 2 - size.width * width + width * size.width + 3)
+            width = floor(width * size.width),
+            height = floor(height * size.height),
+            row = floor(height * ((1 - size.height) / 4)),
+            col = floor(width / 2 - size.width * width + width * size.width + 3)
         }
     end
 
     -- center is default
     return {
-        width = ceil(width * size.width),
-        height = ceil(height * size.height),
-        row = ceil(height * ((1 - size.height) / 4)),
-        col = ceil(width / 2 - size.width * width / 2)
+        width = floor(width * size.width),
+        height = floor(height * size.height),
+        row = floor((height - (height * 0.5)) / 2) - 1,
+        col = floor(width / 2 - size.width * width / 2)
     }
 end
 

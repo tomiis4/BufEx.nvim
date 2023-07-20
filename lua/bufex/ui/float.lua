@@ -1,12 +1,12 @@
-local api = vim.api
-local U = require('bufex.utils')
-local D = require('bufex.data')
-local M = {}
-
-
 ---@class Window
 ---@field[1] number window_id
 ---@field[2] number buffer_id
+
+
+local input = require('bufex.ui.input')
+local U = require('bufex.utils')
+local D = require('bufex.data')
+local M = {}
 
 local shared_buffers = {} ---@type Buffers[]
 local active_windows = {} ---@type Window[]
@@ -15,6 +15,7 @@ local buffers_id = {}
 local config = require('bufex.config').float ---@type Float
 local config_lt = require('bufex.config').local_transfer ---@type LocalTransfer
 
+local api = vim.api
 local is_visible = false
 local selected_buf = nil
 
@@ -42,68 +43,52 @@ local function clear_buffers()
     active_windows = {}
 end
 
-function M.change_password(buf)
-    local password = api.nvim_buf_get_lines(tonumber(buf), 0, 1, false)[1]
-
-    config_lt.password = password
-    M.toggle_item_buf(true)
-end
-
-local function enter_password()
-    clear_buffers()
-
-    local size = { width = 0.4, height = 1 / vim.o.lines }
-    local buf, win = U.setup_win_buf('Enter password', 'center', size, {})
-
-
-    table.insert(active_windows, { win, buf })
-
-    api.nvim_set_option_value('modifiable', true, { buf = buf })
-
-    vim.cmd('startinsert')
-    api.nvim_buf_set_keymap(buf, 'i', '<cr>', '<esc><cr>', {})
-    api.nvim_buf_set_keymap(buf, 'n', '<cr>',
-        ':lua require("bufex.ui.float").change_password(' .. buf ..') <cr>', {})
-
-    api.nvim_set_current_win(win)
-end
-
+--- change param name
 ---@param send boolean?
 function M.toggle_item_buf(send)
-    local row = api.nvim_win_get_cursor(0)[1]
-    local col = api.nvim_win_get_cursor(0)[2]
+    local row, col = unpack(api.nvim_win_get_cursor(0))
     local password = config_lt.opts.need_password
 
-    if row == 5 or send then
+    clear_buffers()
+    is_visible = false
+
+    if row == 6 or send then
         if send or password == 'never' then
+            -- send buffer to server
+
             require('bufex.local.local').send_buffer(selected_buf, config_lt)
-
-            -- toggle it :D
             require('bufex').toggle()
-            require('bufex').toggle()
-        elseif password ~= nil then
-            enter_password()
-        end
-    elseif row == 1 then
-        config_lt.opts.allow_save = not config_lt.opts.allow_save
-    elseif row == 2 then
-        config_lt.opts.allow_edit = not config_lt.opts.allow_edit
-    elseif row == 3 then
-        if password == 'never' then
-            config_lt.opts.need_password = 'ask'
-        elseif password == 'ask' then
-            config_lt.opts.need_password = 'always'
-        elseif password == 'always' then
-            config_lt.opts.need_password = 'never'
-        end
-    end
+        elseif password then
+            -- ask for password
 
-    if row ~= 5 and not send then
+            clear_buffers()
+            input.new_input('Enter password', function(res)
+                config_lt.password = res
+                M.toggle_item_buf(true)
+            end)
+        end
+    else
+        -- toggle function
+
+        if row == 2 then
+            config_lt.opts.allow_save = not config_lt.opts.allow_save
+        elseif row == 3 then
+            config_lt.opts.allow_edit = not config_lt.opts.allow_edit
+        elseif row == 4 then
+            if password == 'never' then
+                config_lt.opts.need_password = 'always'
+            elseif password == 'always' then
+                config_lt.opts.need_password = 'never'
+            end
+        end
+
         M.select_buf_item()
         api.nvim_win_set_cursor(0, { row, col })
     end
 end
 
+-- FIXME fix resize
+-- TODO: REFACTOR
 -- TODO add config, like opts, password
 function M.select_buf_item()
     local line = api.nvim_win_get_cursor(0)[1]
@@ -112,24 +97,38 @@ function M.select_buf_item()
     clear_buffers()
 
     -- TOOD center those
-    local lines = {
-        'Allow save: ' .. tostring(config_lt.opts.allow_save),
-        'Allow edit: ' .. tostring(config_lt.opts.allow_edit),
-        'Need password: ' .. config_lt.opts.need_password,
-        '',
-        'CONTIUNE'
+    local width = math.floor(vim.o.columns * 0.4)
+    local content = {
+        -- '',
+        'allow save: ' .. tostring(config_lt.opts.allow_save),
+        'allow edit: ' .. tostring(config_lt.opts.allow_edit),
+        'password: ' .. config_lt.opts.need_password,
+        -- '',
+        'contiune (C)'
     }
-    local size = { width = 0.4, height = 0.5, }
+    local lines = {
+        '',
+        U.wrap(content[1], (' '):rep((width - #content[1]) / 2)),
+        U.wrap(content[2], (' '):rep((width - #content[2]) / 2)),
+        U.wrap(content[3], (' '):rep((width - #content[3]) / 2)),
+        '',
+        U.wrap(content[4], (' '):rep((width - #content[4]) / 2)),
+    }
+
+    local size = { width = 0.4, height = 0.3, }
     local buf, win = U.setup_win_buf('Select options', 'center', size, lines)
 
     table.insert(active_windows, { win, buf })
 
     api.nvim_set_option_value('cursorline', true, { buf = buf })
+    api.nvim_win_set_cursor(win, {2, 0})
     api.nvim_set_current_win(win)
 
+    U.keyset(buf, 'C', ':lua require("bufex.ui.float").toggle_item_buf(true) <cr>')
     U.keyset(buf, '<cr>', ':lua require("bufex.ui.float").toggle_item_buf(false) <cr>')
 end
 
+-- TODO: REFACTOR
 local function select_buffer()
     clear_buffers()
 
@@ -177,6 +176,9 @@ local function select_buffer()
     end
 end
 
+-- TODO: REFACTOR
+-- TODO: implement selecting (prob. add dropdown as new component)
+-- FIXME: variables
 local function receive_buffer()
     local content, hl = D.convert_buf_info(shared_buffers)
     local size = { width = 0.35, height = 0.7 }

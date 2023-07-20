@@ -32,6 +32,10 @@ function U.remove_key(tbl, key)
     return main
 end
 
+function U.wrap(s, wrap)
+    return wrap .. s .. wrap
+end
+
 ---@param buf number
 ---@param key string
 ---@param action string|function

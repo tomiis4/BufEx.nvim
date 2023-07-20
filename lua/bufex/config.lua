@@ -1,4 +1,4 @@
----@alias Option 'always'|'never'|'ask'
+---@alias Option 'always'|'never'
 ---@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
 
 ---@class Server
@@ -8,7 +8,7 @@
 ---@class Opts
 ---@field allow_edit boolean default true
 ---@field allow_save boolean default false
----@field need_password Option default 'ask'
+---@field need_password Option default 'always'
 ---@field server Server
 
 ---@class Keymap
@@ -39,7 +39,7 @@ local cfg = {
         opts = {
             allow_edit = true,
             allow_save = false,
-            need_password = 'ask',
+            need_password = 'always',
             server = {
                 port = 4210,
                 host = '127.0.0.1'
