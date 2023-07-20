@@ -11,8 +11,12 @@ local M = {}
 local shared_buffers = {} ---@type Buffers[]
 local active_windows = {} ---@type Window[]
 local buffers_id = {}
+
 local config = require('bufex.config').float ---@type Float
+local config_lt = require('bufex.config').local_transfer ---@type LocalTransfer
+
 local is_visible = false
+local selected_buf = nil
 
 api.nvim_create_augroup('BufEx', {})
 
@@ -38,14 +42,92 @@ local function clear_buffers()
     active_windows = {}
 end
 
+function M.change_password(buf)
+    local password = api.nvim_buf_get_lines(tonumber(buf), 0, 1, false)[1]
+
+    config_lt.password = password
+    M.toggle_item_buf(true)
+end
+
+local function enter_password()
+    clear_buffers()
+
+    local size = { width = 0.4, height = 1 / vim.o.lines }
+    local buf, win = U.setup_win_buf('Enter password', 'center', size, {})
+
+
+    table.insert(active_windows, { win, buf })
+
+    api.nvim_set_option_value('modifiable', true, { buf = buf })
+
+    vim.cmd('startinsert')
+    api.nvim_buf_set_keymap(buf, 'i', '<cr>', '<esc><cr>', {})
+    api.nvim_buf_set_keymap(buf, 'n', '<cr>',
+        ':lua require("bufex.ui.float").change_password(' .. buf ..') <cr>', {})
+
+    api.nvim_set_current_win(win)
+end
+
+---@param send boolean?
+function M.toggle_item_buf(send)
+    local row = api.nvim_win_get_cursor(0)[1]
+    local col = api.nvim_win_get_cursor(0)[2]
+    local password = config_lt.opts.need_password
+
+    if row == 5 or send then
+        if send or password == 'never' then
+            require('bufex.local.local').send_buffer(selected_buf, config_lt)
+
+            -- toggle it :D
+            require('bufex').toggle()
+            require('bufex').toggle()
+        elseif password ~= nil then
+            enter_password()
+        end
+    elseif row == 1 then
+        config_lt.opts.allow_save = not config_lt.opts.allow_save
+    elseif row == 2 then
+        config_lt.opts.allow_edit = not config_lt.opts.allow_edit
+    elseif row == 3 then
+        if password == 'never' then
+            config_lt.opts.need_password = 'ask'
+        elseif password == 'ask' then
+            config_lt.opts.need_password = 'always'
+        elseif password == 'always' then
+            config_lt.opts.need_password = 'never'
+        end
+    end
+
+    if row ~= 5 and not send then
+        M.select_buf_item()
+        api.nvim_win_set_cursor(0, { row, col })
+    end
+end
+
 -- TODO add config, like opts, password
 function M.select_buf_item()
     local line = api.nvim_win_get_cursor(0)[1]
-    print(line)
-    local buf = buffers_id[line]
-    print(vim.inspect(buf))
+    selected_buf = selected_buf == nil and buffers_id[line] or selected_buf
 
-    require('bufex.local.local').send_buffer(buf)
+    clear_buffers()
+
+    -- TOOD center those
+    local lines = {
+        'Allow save: ' .. tostring(config_lt.opts.allow_save),
+        'Allow edit: ' .. tostring(config_lt.opts.allow_edit),
+        'Need password: ' .. config_lt.opts.need_password,
+        '',
+        'CONTIUNE'
+    }
+    local size = { width = 0.4, height = 0.5, }
+    local buf, win = U.setup_win_buf('Select options', 'center', size, lines)
+
+    table.insert(active_windows, { win, buf })
+
+    api.nvim_set_option_value('cursorline', true, { buf = buf })
+    api.nvim_set_current_win(win)
+
+    U.keyset(buf, '<cr>', ':lua require("bufex.ui.float").toggle_item_buf(false) <cr>')
 end
 
 local function select_buffer()
@@ -53,10 +135,7 @@ local function select_buffer()
 
     local content, hl, ids = U.get_all_buffers()
     buffers_id = ids
-    local size = {
-        width = 0.35,
-        height = 0.7
-    }
+    local size = { width = 0.35, height = 0.7 }
     local buf, win = U.setup_win_buf('Send buffer', 'left', size, content)
 
     -- autocmd for cursorline and win close
@@ -98,13 +177,9 @@ local function select_buffer()
     end
 end
 
----@param data Buffers[]
 local function receive_buffer()
     local content, hl = D.convert_buf_info(shared_buffers)
-    local size = {
-        width = 0.35,
-        height = 0.7
-    }
+    local size = { width = 0.35, height = 0.7 }
     local buf, win = U.setup_win_buf('Receive buffers', 'right', size, content)
 
     -- autocmd for cursorline and win close
@@ -171,11 +246,13 @@ function M.toggle_window(received_data)
 end
 
 ---@param cfg Float
-function M.setup(cfg)
+---@param cfg_lt LocalTransfer
+function M.setup(cfg, cfg_lt)
     config = cfg
+    config_lt = cfg_lt
 
     api.nvim_create_autocmd('VimResized', {
-        callback = function ()
+        callback = function()
             M.redraw()
         end
     })

@@ -19,7 +19,7 @@ function M.setup(opts)
     -- setup data
     U.setup(config)
     LT.setup(config.local_transfer)
-    UI.setup(config.float)
+    UI.setup(config.float, config.local_transfer)
 end
 
 function M.toggle()

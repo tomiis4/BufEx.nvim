@@ -118,7 +118,7 @@ function U.setup_win_buf(title, position, size, lines)
     local buf = api.nvim_create_buf(false, true)
     api.nvim_buf_set_lines(buf, 0, -1, true, lines)
 
-    local pos = D.get_win_size(position, size)
+    local pos = D.get_win_position(position, size)
 
     -- create window
     local win_opts = {

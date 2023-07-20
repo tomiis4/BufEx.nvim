@@ -24,7 +24,7 @@ D.cmd_events = { 'BufEnter', 'BufLeave', 'WinClosed', 'WinEnter' }
 
 ---@param position 'left'|'right'|'center'
 ---@param size Size width-height in %
-function D.get_win_size(position, size)
+function D.get_win_position(position, size)
     local height = vim.o.lines
     local width = vim.o.columns
     local ceil = math.ceil
@@ -102,7 +102,7 @@ function D.convert_buf_info(data)
         table.insert(hl, { #main - 1, color })
 
         local name = ' ' .. v.client_name
-        local opts = '󱃕 ' .. get_buf_opts_info(v)
+        local opts = get_buf_opts_info(v) and ('󱃕 ' .. get_buf_opts_info(v)) or nil
         local password = v.password and '󰒃 password' or nil
 
         for _, val in pairs({ name, opts, password }) do

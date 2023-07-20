@@ -28,14 +28,18 @@ function M.get_buffers(callback)
             local decoder = loadstring or load
             local decoded = decoder('return ' .. res)()
 
-            callback(decoded, nil)
+            if callback then
+                callback(decoded, nil)
+            end
         end
     end)
 end
 
 ---@param buf_id number
-function M.send_buffer(buf_id)
-    local opts = config.opts.server
+---@param cfg LocalTransfer
+function M.send_buffer(buf_id, cfg)
+    config = vim.tbl_deep_extend('force', config, cfg)
+    local opts = config.opts
 
     local buf_name = api.nvim_buf_get_name(buf_id):match('[^\\/]+$') or ''
     local buf_content = api.nvim_buf_get_lines(buf_id, 0, -1, false)
@@ -48,15 +52,15 @@ function M.send_buffer(buf_id)
         buffer_name = buf_name,
         password = config.password,
         client_name = config.name or U.get_random_name(),
-        allow_edit = config.opts.allow_edit,
-        allow_save = config.opts.allow_save,
+        allow_edit = opts.allow_edit,
+        allow_save = opts.allow_save,
     }
 
     client.send_data(
-        opts.host,
-        opts.port,
+        opts.server.host,
+        opts.server.port,
         vim.inspect(data),
-        vim.schedule_wrap(function (_, err)
+        vim.schedule_wrap(function(_, err)
             vim.notify(err)
         end)
     )
