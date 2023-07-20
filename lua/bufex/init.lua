@@ -1,13 +1,15 @@
 local config = require('bufex.config')
+
+local is_server_on = false
 local is_enabled = false
+
 local D = require('bufex.data')
 local U = require('bufex.utils')
 local UI = require('bufex.ui.float')
 local M = {}
 
-local lt = require('bufex.local.local')
-local lt_cfg = config.local_transfer
-local lt_server = lt_cfg.opts.server
+local LT = require('bufex.local.local')
+local LT_server = config.local_transfer.opts.server
 
 ---@param opts? Configuration
 function M.setup(opts)
@@ -16,29 +18,29 @@ function M.setup(opts)
 
     -- setup data
     U.setup(config)
+    LT.setup(config.local_transfer)
     UI.setup(config.float)
-
-    -- try start server
-    lt.listen(lt_server.host, lt_server.port)
 end
 
 function M.toggle()
     is_enabled = not is_enabled
 
+    if not is_server_on then
+        LT.listen(LT_server.host, LT_server.port)
+        is_server_on = true
+    end
+
     -- close server
-    if is_enabled == false then
+    if not is_enabled then
         UI.toggle_window({})
         return
     end
 
-    -- FIXME: this does not belong there
-    -- send buffer 
-    lt.send_buffer(lt_cfg, 0) -- 0 for current
-
     -- get data from server
-    lt.get_buffers(lt_cfg, vim.schedule_wrap(function(res, err)
+    LT.get_buffers(vim.schedule_wrap(function(res, err)
         if err then
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
+            is_server_on = false
             return
         end
 

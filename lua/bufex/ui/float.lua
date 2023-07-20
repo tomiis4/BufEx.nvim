@@ -3,40 +3,18 @@ local U = require('bufex.utils')
 local D = require('bufex.data')
 local M = {}
 
+
 ---@class Window
 ---@field[1] number window_id
 ---@field[2] number buffer_id
 
+local shared_buffers = {} ---@type Buffers[]
 local active_windows = {} ---@type Window[]
+local buffers_id = {}
 local config = require('bufex.config').float ---@type Float
 local is_visible = false
 
 api.nvim_create_augroup('BufEx', {})
-
-local get_data = {
-    {
-        file = 'index.js',
-        author = U.get_random_name(),
-        allow_save = true,
-        allow_edit = true,
-        password = '123'
-    },
-    {
-        file = 'README.md',
-        author = U.get_random_name(),
-        allow_save = true,
-        allow_edit = false,
-        password = '1234'
-    },
-    {
-        file = 'main.go,',
-        author = U.get_random_name(),
-        allow_save = false,
-        allow_edit = true,
-        password = nil
-    }
-}
-
 
 local function clear_buffers()
     -- clean autocmds
@@ -60,10 +38,21 @@ local function clear_buffers()
     active_windows = {}
 end
 
+-- TODO add config, like opts, password
+function M.select_buf_item()
+    local line = api.nvim_win_get_cursor(0)[1]
+    print(line)
+    local buf = buffers_id[line]
+    print(vim.inspect(buf))
+
+    require('bufex.local.local').send_buffer(buf)
+end
+
 local function select_buffer()
     clear_buffers()
 
-    local content, hl = U.get_all_buffers()
+    local content, hl, ids = U.get_all_buffers()
+    buffers_id = ids
     local size = {
         width = 0.35,
         height = 0.7
@@ -100,8 +89,8 @@ local function select_buffer()
         api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 1, 3)
     end
 
-    -- add keymaps
-    U.keyset(buf, config.keymap.select, ':echo "Select"<cr>')
+    -- send buffer
+    U.keyset(buf, config.keymap.select, ":lua require('bufex.ui.float').select_buf_item() <cr>")
 
     -- select buffers by number
     for i = 0, 9 do
@@ -110,8 +99,8 @@ local function select_buffer()
 end
 
 ---@param data Buffers[]
-local function receive_buffer(data)
-    local content, hl = D.convert_buf_info(data)
+local function receive_buffer()
+    local content, hl = D.convert_buf_info(shared_buffers)
     local size = {
         width = 0.35,
         height = 0.7
@@ -155,8 +144,7 @@ function M.redraw()
 
         select_buffer()
 
-        -- FIXME!!
-        receive_buffer({})
+        receive_buffer()
     end
 end
 
@@ -167,8 +155,10 @@ function M.toggle_window(received_data)
     clear_buffers()
 
     if is_visible then
+        shared_buffers = received_data
+
         select_buffer()
-        receive_buffer(received_data)
+        receive_buffer()
 
         -- keymap to switch windows
         local win_0, buf_0 = active_windows[1][1], active_windows[1][2]

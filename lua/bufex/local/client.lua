@@ -34,7 +34,7 @@ function M.send_data(host, port, data, callback)
             else
                 -- server is closed
                 client:close(function()
-                    vim.notify(msg['ERROR']['CONNECT'])
+                    callback({}, msg['ERROR']['CONNECT'])
                 end)
             end
         end)

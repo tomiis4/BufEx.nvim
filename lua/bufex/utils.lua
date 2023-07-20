@@ -71,8 +71,10 @@ end
 
 ---@return table buffers
 ---@return HL[] highlights
+---@return table buffers_id
 function U.get_all_buffers()
     local buffers = {}
+    local buffers_id = {}
     local hl = {} ---@type HL[]
 
     -- filter existing buffers
@@ -95,13 +97,14 @@ function U.get_all_buffers()
 
         if name ~= '' then
             table.insert(buffers, icon .. ' ' .. name)
+            table.insert(buffers_id, buf)
 
             -- add to line
             table.insert(hl, { #buffers - 1, color })
         end
     end
 
-    return buffers, hl
+    return buffers, hl, buffers_id
 end
 
 ---@param title string

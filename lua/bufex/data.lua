@@ -5,18 +5,18 @@ D.names = { 'Lion', 'Elephant', 'Tiger', 'Giraffe', 'Monkey', 'Dolphin', 'Pengui
 
 D.messages = {
     ['OK'] = {
-        ['CONNECT'] = 'Connection was established successfully.',
-        ['CREATE'] = 'Server was created successfully.',
-        ['CLOSE'] = 'Server was closed successfully.',
-        ['SEND'] = 'Data was sent successfully.',
-        ['RECEIVE'] = 'Data was received successfully.',
+        ['CONNECT'] = 'Connection was established successfully',
+        ['CREATE'] = 'Server was created successfully',
+        ['CLOSE'] = 'Server was closed successfully',
+        ['SEND'] = 'Data was sent successfully',
+        ['RECEIVE'] = 'Data was received successfully',
     },
     ['ERROR'] = {
-        ['CONNECT'] = 'Failed to establish connection.',
-        ['CREATE'] = 'Failed to create server.',
-        ['CLOSE'] = 'Failed to close server.',
-        ['SEND'] = 'Failed to send data.',
-        ['RECEIVE'] = 'Failed to receive data.',
+        ['CONNECT'] = 'Failed to establish connection',
+        ['CREATE'] = 'Failed to create server',
+        ['CLOSE'] = 'Failed to close server',
+        ['SEND'] = 'Failed to send data',
+        ['RECEIVE'] = 'Failed to receive data',
     }
 }
 
@@ -77,15 +77,28 @@ function D.convert_buf_info(data)
 
         return opts_save or opts_edit
     end
+    ---@return string icon
+    ---@return string color
+    local function get_icon(file)
+        local ok, dev_icons = pcall(require, 'nvim-web-devicons')
+        local ext = file:match('%w+%.(.+)') or file
+
+        -- can't find dev-icons
+        if not ok then
+            return '', ''
+        end
+
+        return dev_icons.get_icon(file, ext, { default = true })
+    end
 
     local main = {}
     local hl = {}
 
     for k, v in pairs(data) do
         local file = v.buffer_name
-        local icon, color = '', ''
+        local icon, color = get_icon(file)
 
-        table.insert(main, ' ' .. icon .. ' ' .. v.buffer_name)
+        table.insert(main, ' ' .. icon .. ' ' .. file)
         table.insert(hl, { #main - 1, color })
 
         local name = ' ' .. v.client_name
