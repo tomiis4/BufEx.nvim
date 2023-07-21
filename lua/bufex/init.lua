@@ -11,6 +11,8 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
+-- TODO: rewrite everything to vim.keymap.set
+--          - make it buf:map('mode', 'key', 'do')
 -- TODO: real-time connection?
 
 ---@param opts? Configuration

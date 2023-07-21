@@ -4,6 +4,8 @@
 
 
 local input = require('bufex.ui.input')
+local select = require('bufex.ui.select')
+
 local U = require('bufex.utils')
 local D = require('bufex.data')
 local M = {}
@@ -20,6 +22,7 @@ local is_visible = false
 local selected_buf = nil
 
 api.nvim_create_augroup('BufEx', {})
+
 
 local function clear_buffers()
     -- clean autocmds
@@ -121,7 +124,7 @@ function M.select_buf_item()
     table.insert(active_windows, { win, buf })
 
     api.nvim_set_option_value('cursorline', true, { buf = buf })
-    api.nvim_win_set_cursor(win, {2, 0})
+    api.nvim_win_set_cursor(win, { 2, 0 })
     api.nvim_set_current_win(win)
 
     U.keyset(buf, 'C', ':lua require("bufex.ui.float").toggle_item_buf(true) <cr>')
@@ -145,7 +148,7 @@ local function select_buffer()
             local ev = e.event
 
             if ev == 'WinClosed' then
-                M.toggle_window({})
+                M.toggle_window()
             else
                 local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
@@ -168,7 +171,7 @@ local function select_buffer()
     end
 
     -- send buffer
-    U.keyset(buf, config.keymap.select, ":lua require('bufex.ui.float').select_buf_item() <cr>")
+    U.keyset(buf, '<cr>', ":lua require('bufex.ui.float').select_buf_item() <cr>")
 
     -- select buffers by number
     for i = 0, 9 do
@@ -178,11 +181,26 @@ end
 
 -- TODO: REFACTOR
 -- TODO: implement selecting (prob. add dropdown as new component)
--- FIXME: variables
+-- FIXME: global variables like shared_buffers
 local function receive_buffer()
-    local content, hl = D.convert_buf_info(shared_buffers)
+    local lines, options_start, hl = D.convert_buf_info(shared_buffers)
+
     local size = { width = 0.35, height = 0.7 }
-    local buf, win = U.setup_win_buf('Receive buffers', 'right', size, content)
+    local buf, win = select.new_select(
+            'Receive buffers',
+            'right',
+            size, { lines, options_start },
+            function(option, n_option)
+                print(option, n_option)
+            end
+        )
+
+    table.insert(active_windows, { win, buf })
+
+    local ns = api.nvim_create_namespace('BufEx')
+    for _, v in pairs(hl) do
+        api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 0, -1)
+    end
 
     -- autocmd for cursorline and win close
     api.nvim_create_autocmd(D.cmd_events, {
@@ -192,7 +210,7 @@ local function receive_buffer()
             local ev = e.event
 
             if ev == 'WinClosed' then
-                M.toggle_window({})
+                M.toggle_window()
             else
                 local set_line = ev == 'BufEnter' or ev == 'WinEnter'
 
@@ -204,15 +222,6 @@ local function receive_buffer()
             end
         end
     })
-
-    table.insert(active_windows, { win, buf })
-
-    local ns = api.nvim_create_namespace('BufEx')
-    for _, v in pairs(hl) do
-        api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 0, -1)
-    end
-
-    api.nvim_set_current_win(win)
 end
 
 function M.redraw()
@@ -225,14 +234,16 @@ function M.redraw()
     end
 end
 
----@param received_data Buffers[]
+--- TODO make it for all windows
+---@param received_data Buffers[]?
 function M.toggle_window(received_data)
+    received_data = received_data or {}
     is_visible = not is_visible
 
     clear_buffers()
 
     if is_visible then
-        shared_buffers = received_data
+        shared_buffers = #received_data == 0 and shared_buffers or received_data
 
         select_buffer()
         receive_buffer()

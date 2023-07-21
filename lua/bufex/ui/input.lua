@@ -1,17 +1,17 @@
----@class Input
+---@class InputScreen
 ---@field [1] number win
 ---@field [2] number buf
 
 
-local inputs = {} ---@type Input[]
+local input_screens = {} ---@type InputScreen[]
 local api = vim.api
 
 local U = require('bufex.utils')
 local M = {}
 
 
-local function clear_input()
-    for _, v in pairs(inputs) do
+local function clean_screens()
+    for _, v in pairs(input_screens) do
         local win, buf = v[1], v[2]
 
         if win ~= nil and api.nvim_win_is_valid(win) then
@@ -23,7 +23,7 @@ local function clear_input()
         end
     end
 
-    inputs = {}
+    input_screens = {}
 end
 
 ---@param title string
@@ -33,10 +33,10 @@ function M.new_input(title, callback)
     local size = { width = 0.4, height = 1 / vim.o.lines }
     local buf, win = U.setup_win_buf(title, 'center', size, {})
 
-    -- configure win and register it to `inputs`
+    -- configure win and register it to `input_screens`
     api.nvim_set_option_value('modifiable', true, { buf = buf })
     api.nvim_set_current_win(win)
-    table.insert(inputs, { win, buf })
+    table.insert(input_screens, { win, buf })
 
     -- insert & confirm
     vim.cmd('startinsert')
@@ -49,7 +49,7 @@ function M.new_input(title, callback)
 
             if e.event == 'ModeChanged' and vim.fn.mode() ~= 'i' then
                 vim.cmd('stopinsert')
-                clear_input()
+                clean_screens()
                 callback(value)
             end
         end

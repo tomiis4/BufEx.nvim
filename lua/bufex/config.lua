@@ -12,7 +12,6 @@
 ---@field server Server
 
 ---@class Keymap
----@field select string default '<CR>'
 ---@field quit string default 'q'
 ---@field next_window string default 'n'
 
@@ -51,7 +50,6 @@ local cfg = {
         winblend = 0,
         icons = true,
         keymap = {
-            select = '<CR>',
             quit = 'q',
             next_window = 'n',
         }

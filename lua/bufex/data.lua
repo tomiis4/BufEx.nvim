@@ -57,7 +57,8 @@ end
 
 --- convert shadred buffers to one array
 ---@param data Buffers[]
----@return table main
+---@return table options
+---@return table options_start
 ---@return table hl
 function D.convert_buf_info(data)
     ---@param data_buf Buffers
@@ -90,15 +91,17 @@ function D.convert_buf_info(data)
         return dev_icons.get_icon(file, ext, { default = true })
     end
 
-    local main = {}
+    local lines = {}
+    local options_start = {}
     local hl = {}
 
     for k, v in pairs(data) do
         local file = v.buffer_name
         local icon, color = get_icon(file)
 
-        table.insert(main, ' ' .. icon .. ' ' .. file)
-        table.insert(hl, { #main - 1, color })
+        table.insert(lines, ' ' .. icon .. ' ' .. file)
+        table.insert(options_start, #lines)
+        table.insert(hl, { #lines - 1, color })
 
         local name = ' ' .. v.client_name
         local opts = get_buf_opts_info(v) and ('󱃕 ' .. get_buf_opts_info(v)) or nil
@@ -106,17 +109,17 @@ function D.convert_buf_info(data)
 
         for _, val in pairs({ name, opts, password }) do
             if val then
-                table.insert(main, '    ' .. val)
+                table.insert(lines, '    ' .. val)
             end
         end
 
         -- add extra space at the end
         if k ~= #data then
-            table.insert(main, '')
+            table.insert(lines, '')
         end
     end
 
-    return main, hl
+    return lines, options_start, hl
 end
 
 return D
