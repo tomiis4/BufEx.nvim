@@ -43,9 +43,14 @@ function M.new_select(title, position, size, content, callback)
         local row = api.nvim_win_get_cursor(0)[1]
 
         local i = 1
-        -- FIXME: fix not clicking on 1. item and not options
-        vim.print(vim.inspect(content))
-        while row > content[2][i] do
+        while i <= #content[2] do
+            local ct_min = content[2][i]
+            local ct_max = content[2][i + 1] or row
+
+            if row >= ct_min and row <= ct_max then
+                break
+            end
+
             i = i + 1
         end
 

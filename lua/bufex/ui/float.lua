@@ -97,6 +97,7 @@ function M.select_buf_item()
     local line = api.nvim_win_get_cursor(0)[1]
     selected_buf = selected_buf == nil and buffers_id[line] or selected_buf
 
+    print(line, api.nvim_buf_get_name(selected_buf))
     clear_buffers()
 
     -- TOOD center those
@@ -171,6 +172,7 @@ local function select_buffer()
     end
 
     -- send buffer
+    selected_buf = nil
     U.keyset(buf, '<cr>', ":lua require('bufex.ui.float').select_buf_item() <cr>")
 
     -- select buffers by number
