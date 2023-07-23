@@ -43,9 +43,11 @@ end
 ---@param opts table?
 function U.keyset(buf, key, action, mode, opts)
     opts = opts or { nowait = true, silent = true }
+    opts['buffer'] = buf
+
     mode = mode or 'n'
 
-    api.nvim_buf_set_keymap(buf, mode, key, action, opts)
+    vim.keymap.set(mode, key, action, opts)
 end
 
 ---@return string

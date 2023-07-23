@@ -6,6 +6,7 @@
 local select_screens = {} ---@type SelectScreen[]
 local api = vim.api
 
+local D = require('bufex.data')
 local U = require('bufex.utils')
 local M = {}
 
@@ -39,6 +40,7 @@ function M.new_select(title, position, size, content, callback)
     api.nvim_set_current_win(win)
     table.insert(select_screens, { win, buf })
 
+    -- get and return selected item
     local function select_item()
         local row = api.nvim_win_get_cursor(0)[1]
 
@@ -57,6 +59,27 @@ function M.new_select(title, position, size, content, callback)
         callback(content[1][i], i)
         clear_screens()
     end
+
+    -- autocmd for cursorline and win close
+    api.nvim_create_autocmd(D.cmd_events, {
+        buffer = buf,
+        group = 'BufEx',
+        callback = function(e)
+            local ev = e.event
+
+            if ev == 'WinClosed' then
+                clear_screens()
+            else
+                local set_line = ev == 'BufEnter' or ev == 'WinEnter'
+
+                api.nvim_set_option_value(
+                    'cursorline',
+                    set_line,
+                    { buf = buf }
+                )
+            end
+        end
+    })
 
     vim.keymap.set('n', '<cr>', select_item, { buffer = buf, })
     return buf, win
