@@ -46,7 +46,7 @@ local function clear_buffers()
     active_windows = {}
 end
 
--- RENAME FUNCTION
+--- TOOD_LATER: when password, it does not show it in menu after
 ---@param row number
 ---@param instant_send boolean?
 local function toggle_buf_option(row, instant_send)
@@ -56,29 +56,32 @@ local function toggle_buf_option(row, instant_send)
     clear_buffers()
     is_visible = false
 
-    if row == 6 or instant_send then
+    if row == 5 or instant_send then
         if instant_send or password == 'never' then
-            -- send buffer to server
+            -- FIXME password
+            if password == 'never' then
+                config_lt.password = nil
+            end
 
             require('bufex.local.local').send_buffer(selected_buf, config_lt)
-            require('bufex').toggle()
+            require('bufex').toggle() -- TODO: refactor?
         elseif password then
             -- ask for password
 
             clear_buffers()
             input.new_input('Enter password', function(res)
-                config_lt.password = res
-                M.toggle_item_buf(true)
+                config_lt.password = res == '' and nil or res
+                toggle_buf_option( -1, true)
             end)
         end
     else
         -- toggle function
 
-        if row == 2 then
+        if row == 1 then
             config_lt.opts.allow_save = not config_lt.opts.allow_save
-        elseif row == 3 then
+        elseif row == 2 then
             config_lt.opts.allow_edit = not config_lt.opts.allow_edit
-        elseif row == 4 then
+        elseif row == 3 then
             if password == 'never' then
                 config_lt.opts.need_password = 'always'
             elseif password == 'always' then
@@ -86,18 +89,21 @@ local function toggle_buf_option(row, instant_send)
             end
         end
 
-        M.select_buf_item()
-        api.nvim_win_set_cursor(0, { row, col })
+        M.select_buf_item() -- fixme
+        api.nvim_win_set_cursor(0, { row + 1, col })
     end
 end
 
 -- FIXME fix resize, fix storing variables
 -- TODO add colors
-function M.select_buf_item()
-    local line = api.nvim_win_get_cursor(0)[1]
+---@param row number?
+function M.select_buf_item(row)
+    clear_buffers()
+
+    local line = row or 0
     selected_buf = selected_buf == nil and buffers_id[line] or selected_buf
 
-    clear_buffers()
+    print(selected_buf and api.nvim_buf_get_name(selected_buf) or '')
 
     -- TOOD_LATER: prob. make it smaller or make function for it in UTILS
     local width = math.floor(vim.o.columns * 0.4)
@@ -116,13 +122,12 @@ function M.select_buf_item()
         U.wrap(content[4], (' '):rep((width - #content[4]) / 2)),
     }
     -- TODO: make util for this --v
-    local marks = {1, 2, 3, 4, 5, 6}
+    local marks = U.get_marks(#lines)
     local size = { width = 0.4, height = 0.3, }
     local buf, win = select.new_select('Select options', 'center', size, { lines, marks },
             function(_, n_option)
                 -- FIXME: fix toggle option, not displaying
-                toggle_buf_option(n_option, false)
-                print('selected')
+                toggle_buf_option(n_option - 1, false)
             end
         )
 
@@ -131,61 +136,45 @@ function M.select_buf_item()
     api.nvim_win_set_cursor(win, { 2, 0 })
 
     -- select option
-    U.keyset(buf, 'C', function ()
-        toggle_buf_option(-1, true)
+    U.keyset(buf, 'C', function()
+        toggle_buf_option(5, false)
     end)
 end
 
--- TODO: REFACTOR
+--- TODO fix storing data
 local function select_buffer()
     clear_buffers()
 
-    local content, hl, ids = U.get_all_buffers()
-    buffers_id = ids
     local size = { width = 0.35, height = 0.7 }
-    local buf, win = U.setup_win_buf('Send buffer', 'left', size, content)
+    local lines, hl, ids = U.get_all_buffers()
 
-    -- autocmd for cursorline and win close
-    api.nvim_create_autocmd(D.cmd_events, {
-        buffer = buf,
-        group = 'BufEx',
-        callback = function(e)
-            local ev = e.event
+    buffers_id = ids
+    selected_buf = nil
 
-            if ev == 'WinClosed' then
-                M.toggle_window()
-            else
-                local set_line = ev == 'BufEnter' or ev == 'WinEnter'
-
-                api.nvim_set_option_value(
-                    'cursorline',
-                    set_line,
-                    { buf = buf }
-                )
+    local marks = U.get_marks(#lines)
+    local buf, win = select.new_select('Send buffer', 'left', size,
+            { lines, marks },
+            function(x, n_option)
+                print(x, n_option)
+                M.select_buf_item(n_option)
             end
-        end
-    })
+        )
 
     table.insert(active_windows, { win, buf })
     api.nvim_set_option_value('number', true, { buf = buf })
 
-    -- add hl
+    -- highlight icons
     local ns = api.nvim_create_namespace('BufEx')
     for _, v in pairs(hl) do
         api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 1, 3)
     end
 
-    -- send buffer
-    selected_buf = nil
-    U.keyset(buf, '<cr>', ":lua require('bufex.ui.float').select_buf_item() <cr>")
-
     -- select buffers by number
-    for i = 0, 9 do
-        U.keyset(buf, tostring(i), i .. 'gg <cr>')
+    for i = 1, 9 do
+        U.keyset(buf, tostring(i), '<cmd> ' .. i .. ' <cr>')
     end
 end
 
--- TODO: REFACTOR
 -- FIXME: global variables like shared_buffers
 local function receive_buffer()
     local lines, options_start, hl = D.convert_buf_info(shared_buffers)

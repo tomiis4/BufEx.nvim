@@ -32,6 +32,18 @@ function U.remove_key(tbl, key)
     return main
 end
 
+---@param range number
+---@return table
+function U.get_marks(range)
+    local main = {}
+
+    for i = 0, range do
+        table.insert(main, i)
+    end
+
+    return main
+end
+
 function U.wrap(s, wrap)
     return wrap .. s .. wrap
 end

@@ -57,7 +57,6 @@ function M.new_select(title, position, size, content, callback)
         end
 
         callback(content[1][i], i)
-        clear_screens()
     end
 
     -- autocmd for cursorline and win close
