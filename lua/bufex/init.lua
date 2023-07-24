@@ -11,8 +11,6 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
--- TODO: rewrite everything to vim.keymap.set
---          - make it buf:map('mode', 'key', 'do')
 -- TODO: real-time connection?
 
 ---@param opts? Configuration
@@ -44,7 +42,10 @@ function M.toggle()
     LT.get_buffers(vim.schedule_wrap(function(res, err)
         if err then
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
+
             is_server_on = false
+            is_enabled = false
+
             return
         end
 

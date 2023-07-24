@@ -10,19 +10,21 @@ local U = require('bufex.utils')
 local D = require('bufex.data')
 local M = {}
 
-local shared_buffers = {} ---@type Buffers[]
 local active_windows = {} ---@type Window[]
-local buffers_id = {}
+local shared_buffers = {} ---@type Buffers[]
+local available_buffers = {} ---@type table<number> buffers in showed order
 
 local config = require('bufex.config').float ---@type Float
 local config_lt = require('bufex.config').local_transfer ---@type LocalTransfer
 
 local api = vim.api
-local is_visible = false
+local is_menu_visible = false
 local selected_buf = nil
 
 api.nvim_create_augroup('BufEx', {})
 
+-- FIXME: fix exit trough Q in opts menu
+-- ^ in menu fix resize center too
 
 local function clear_buffers()
     -- clean autocmds
@@ -46,7 +48,6 @@ local function clear_buffers()
     active_windows = {}
 end
 
---- TOOD_LATER: when password, it does not show it in menu after
 ---@param row number
 ---@param instant_send boolean?
 local function toggle_buf_option(row, instant_send)
@@ -54,17 +55,17 @@ local function toggle_buf_option(row, instant_send)
     local password = config_lt.opts.need_password
 
     clear_buffers()
-    is_visible = false
+    is_menu_visible = false
 
     if row == 5 or instant_send then
         if instant_send or password == 'never' then
-            -- FIXME password
+            -- FIXME password, ??opts are not displaying correctly??
             if password == 'never' then
                 config_lt.password = nil
             end
 
             require('bufex.local.local').send_buffer(selected_buf, config_lt)
-            require('bufex').toggle() -- TODO: refactor?
+            require('bufex').toggle()
         elseif password then
             -- ask for password
 
@@ -89,11 +90,13 @@ local function toggle_buf_option(row, instant_send)
             end
         end
 
-        M.select_buf_item() -- fixme
+        M.select_buf_item()
         api.nvim_win_set_cursor(0, { row + 1, col })
     end
 end
 
+--- nwm how it works -v
+--- TOOD_LATER: only second time it show all send buffers
 -- FIXME fix resize, fix storing variables
 -- TODO add colors
 ---@param row number?
@@ -101,32 +104,19 @@ function M.select_buf_item(row)
     clear_buffers()
 
     local line = row or 0
-    selected_buf = selected_buf == nil and buffers_id[line] or selected_buf
+    selected_buf = selected_buf == nil and available_buffers[line] or selected_buf
 
-    print(selected_buf and api.nvim_buf_get_name(selected_buf) or '')
-
-    -- TOOD_LATER: prob. make it smaller or make function for it in UTILS
-    local width = math.floor(vim.o.columns * 0.4)
-    local content = {
-        'allow save: ' .. tostring(config_lt.opts.allow_save),
+    local lines = {
+        '', 'allow save: ' .. tostring(config_lt.opts.allow_save),
         'allow edit: ' .. tostring(config_lt.opts.allow_edit),
         'password: ' .. config_lt.opts.need_password,
-        'contiune (C)'
+        '', 'contiune (C)'
     }
-    local lines = {
-        '',
-        U.wrap(content[1], (' '):rep((width - #content[1]) / 2)),
-        U.wrap(content[2], (' '):rep((width - #content[2]) / 2)),
-        U.wrap(content[3], (' '):rep((width - #content[3]) / 2)),
-        '',
-        U.wrap(content[4], (' '):rep((width - #content[4]) / 2)),
-    }
-    -- TODO: make util for this --v
-    local marks = U.get_marks(#lines)
     local size = { width = 0.4, height = 0.3, }
-    local buf, win = select.new_select('Select options', 'center', size, { lines, marks },
+    local marks = U.get_marks(#lines)
+    local buf, win = select.new_select('Select options', 'center', size,
+            { lines, marks },
             function(_, n_option)
-                -- FIXME: fix toggle option, not displaying
                 toggle_buf_option(n_option - 1, false)
             end
         )
@@ -141,22 +131,21 @@ function M.select_buf_item(row)
     end)
 end
 
---- TODO fix storing data
 local function select_buffer()
     clear_buffers()
 
     local size = { width = 0.35, height = 0.7 }
     local lines, hl, ids = U.get_all_buffers()
 
-    buffers_id = ids
+    available_buffers = ids
     selected_buf = nil
 
     local marks = U.get_marks(#lines)
     local buf, win = select.new_select('Send buffer', 'left', size,
             { lines, marks },
-            function(x, n_option)
-                print(x, n_option)
+            function(_, n_option)
                 M.select_buf_item(n_option)
+                is_menu_visible = false
             end
         )
 
@@ -175,7 +164,6 @@ local function select_buffer()
     end
 end
 
--- FIXME: global variables like shared_buffers
 local function receive_buffer()
     local lines, options_start, hl = D.convert_buf_info(shared_buffers)
 
@@ -184,9 +172,9 @@ local function receive_buffer()
             'Receive buffers',
             'right',
             size, { lines, options_start },
-            function(option, n_option)
+            function(_, n_option)
                 -- TODO: implement selecting buffer
-                print(option, n_option)
+                is_menu_visible = false
             end
         )
 
@@ -201,7 +189,7 @@ local function receive_buffer()
 end
 
 function M.redraw()
-    if is_visible then
+    if is_menu_visible then
         clear_buffers()
 
         select_buffer()
@@ -214,11 +202,11 @@ end
 ---@param received_data Buffers[]?
 function M.toggle_window(received_data)
     received_data = received_data or {}
-    is_visible = not is_visible
+    is_menu_visible = not is_menu_visible
 
     clear_buffers()
 
-    if is_visible then
+    if is_menu_visible then
         shared_buffers = #received_data == 0 and shared_buffers or received_data
 
         select_buffer()
@@ -240,6 +228,7 @@ function M.setup(cfg, cfg_lt)
     config = cfg
     config_lt = cfg_lt
 
+    -- redraw main menu
     api.nvim_create_autocmd('VimResized', {
         callback = function()
             M.redraw()

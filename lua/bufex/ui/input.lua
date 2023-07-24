@@ -28,10 +28,11 @@ end
 
 ---@param title string
 ---@param callback fun(res: string)
-function M.new_input(title, callback)
-    local value = ''
+---@param value string? only for resizing
+function M.new_input(title, callback, value)
+    value = value or ''
     local size = { width = 0.4, height = 1 / vim.o.lines }
-    local buf, win = U.setup_win_buf(title, 'center', size, {})
+    local buf, win = U.setup_win_buf(title, 'center', size, { value })
 
     -- configure win and register it to `input_screens`
     api.nvim_set_option_value('modifiable', true, { buf = buf })
@@ -41,6 +42,7 @@ function M.new_input(title, callback)
     -- insert & confirm
     vim.cmd('startinsert')
 
+    -- listening for I/O
     U.keyset(buf, '<cr>', '<esc>', 'i')
     api.nvim_create_autocmd({ 'InsertChange', 'CursorMovedI', 'ModeChanged' }, {
         buffer = buf,
@@ -52,6 +54,16 @@ function M.new_input(title, callback)
                 clean_screens()
                 callback(value)
             end
+        end
+    })
+
+    -- autocmd for resizing
+    api.nvim_create_autocmd('VimResized', {
+        buffer = buf,
+        group = 'BufEx',
+        callback = function()
+            clean_screens()
+            M.new_input(title, callback, value)
         end
     })
 end

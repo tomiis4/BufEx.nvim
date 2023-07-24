@@ -87,6 +87,20 @@ function U.get_icon(file)
     return dev_icons.get_icon(file, ext, { default = true })
 end
 
+---@param lines table<string>
+---@return table<string>
+function U.center_lines(lines)
+    local width = math.floor(vim.o.columns * 0.4)
+    local main = {}
+
+    for _, v in pairs(lines) do
+        local center = U.wrap(v, (' '):rep((width - #v) / 2))
+        table.insert(main, center)
+    end
+
+    return main
+end
+
 ---@return table buffers
 ---@return HL[] highlights
 ---@return table buffers_id

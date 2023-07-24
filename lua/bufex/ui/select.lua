@@ -34,6 +34,7 @@ end
 ---@param callback fun(option: string, n_option: number)
 ---@return number, number
 function M.new_select(title, position, size, content, callback)
+    content[1] = U.center_lines(content[1])
     local buf, win = U.setup_win_buf(title, position, size, content[1])
 
     -- configure win and register it to `input_screens`
@@ -77,6 +78,16 @@ function M.new_select(title, position, size, content, callback)
                     { buf = buf }
                 )
             end
+        end
+    })
+
+    -- autocmd for resizing
+    api.nvim_create_autocmd('VimResized', {
+        buffer = buf,
+        group = 'BufEx',
+        callback = function()
+            clear_screens()
+            M.new_select(title, position, size, content, callback)
         end
     })
 
