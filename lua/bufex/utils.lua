@@ -139,6 +139,8 @@ function U.get_all_buffers()
     return buffers, hl, buffers_id
 end
 
+local active_windows = {} ---@type Window[]
+
 ---@param title string
 ---@param position 'left'|'right'|'center'
 ---@param size Size width-height in %
@@ -178,9 +180,25 @@ function U.setup_win_buf(title, position, size, lines)
     end
     api.nvim_set_option_value('winhighlight', 'FloatBorder:Normal', { win = win })
 
-    -- add keymaps
-    U.keyset(buf, float.keymap.quit, ':BufexToggle<cr>')
+    -- add keymap for quit
+    U.keyset(buf, float.keymap.quit, function()
+        -- clean windows/buffers
+        for _, v in pairs(active_windows) do
+            local a_win, a_buf = v[1], v[2]
 
+            if a_win ~= nil and api.nvim_win_is_valid(a_win) then
+                api.nvim_win_close(a_win, true)
+            end
+
+            if a_buf ~= nil and api.nvim_buf_is_valid(a_buf) then
+                api.nvim_buf_delete(a_buf, { force = true })
+            end
+        end
+
+        active_windows = {}
+    end)
+
+    table.insert(active_windows, { win, buf })
     return buf, win
 end
 

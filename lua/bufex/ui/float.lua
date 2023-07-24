@@ -23,9 +23,6 @@ local selected_buf = nil
 
 api.nvim_create_augroup('BufEx', {})
 
--- FIXME: fix exit trough Q in opts menu
--- ^ in menu fix resize center too
-
 local function clear_buffers()
     -- clean autocmds
     api.nvim_clear_autocmds({
@@ -61,7 +58,7 @@ local function toggle_buf_option(row, instant_send)
         if instant_send or password == 'never' then
             -- FIXME password, ??opts are not displaying correctly??
             if password == 'never' then
-                config_lt.password = nil
+                config_lt.password = 'nil'
             end
 
             require('bufex.local.local').send_buffer(selected_buf, config_lt)
@@ -96,9 +93,8 @@ local function toggle_buf_option(row, instant_send)
 end
 
 --- nwm how it works -v
---- TOOD_LATER: only second time it show all send buffers
--- FIXME fix resize, fix storing variables
--- TODO add colors
+--- TODO_LATER: only second time it show all send buffers
+--- TODO add colors
 ---@param row number?
 function M.select_buf_item(row)
     clear_buffers()
@@ -131,6 +127,7 @@ function M.select_buf_item(row)
     end)
 end
 
+--- FIXME: fix line length, tf it's everywhere????!!!
 local function select_buffer()
     clear_buffers()
 
@@ -198,7 +195,6 @@ function M.redraw()
     end
 end
 
---- TODO make it for all windows
 ---@param received_data Buffers[]?
 function M.toggle_window(received_data)
     received_data = received_data or {}
@@ -217,8 +213,13 @@ function M.toggle_window(received_data)
         local win_1, buf_1 = active_windows[2][1], active_windows[2][2]
         local next_win = config.keymap.next_window
 
-        U.keyset(buf_0, next_win, ':lua vim.api.nvim_set_current_win(' .. win_1 .. ')<cr>')
-        U.keyset(buf_1, next_win, ':lua vim.api.nvim_set_current_win(' .. win_0 .. ')<cr>')
+        U.keyset(buf_0, next_win, function()
+            api.nvim_set_current_win(win_1)
+        end)
+
+        U.keyset(buf_1, next_win, function()
+            api.nvim_set_current_win(win_0)
+        end)
     end
 end
 

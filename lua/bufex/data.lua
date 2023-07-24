@@ -105,7 +105,7 @@ function D.convert_buf_info(data)
 
         local name = ' ' .. v.client_name
         local opts = get_buf_opts_info(v) and ('󱃕 ' .. get_buf_opts_info(v)) or nil
-        local password = v.password and '󰒃 password' or nil
+        local password = v.password ~= 'nil' and '󰒃 password' or nil
 
         for _, val in pairs({ name, opts, password }) do
             if val then
