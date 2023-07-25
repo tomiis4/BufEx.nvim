@@ -6,6 +6,7 @@
 local input = require('bufex.ui.input')
 local select = require('bufex.ui.select')
 
+local floor = math.floor
 local U = require('bufex.utils')
 local D = require('bufex.data')
 local M = {}
@@ -21,6 +22,7 @@ local api = vim.api
 local is_menu_visible = false
 local selected_buf = nil
 
+local ns = api.nvim_create_namespace('BufEx')
 api.nvim_create_augroup('BufEx', {})
 
 local function clear_buffers()
@@ -56,7 +58,6 @@ local function toggle_buf_option(row, instant_send)
 
     if row == 5 or instant_send then
         if instant_send or password == 'never' then
-            -- FIXME password, ??opts are not displaying correctly??
             if password == 'never' then
                 config_lt.password = 'nil'
             end
@@ -93,8 +94,7 @@ local function toggle_buf_option(row, instant_send)
 end
 
 --- nwm how it works -v
---- TODO_LATER: only second time it show all send buffers
---- TODO add colors
+--- TODO: only second time it show all send buffers
 ---@param row number?
 function M.select_buf_item(row)
     clear_buffers()
@@ -103,15 +103,16 @@ function M.select_buf_item(row)
     selected_buf = selected_buf == nil and available_buffers[line] or selected_buf
 
     local lines = {
-        '', 'allow save: ' .. tostring(config_lt.opts.allow_save),
-        'allow edit: ' .. tostring(config_lt.opts.allow_edit),
-        'password: ' .. config_lt.opts.need_password,
+        '', '(S) allow save: ' .. tostring(config_lt.opts.allow_save),
+        '(E) allow edit: ' .. tostring(config_lt.opts.allow_edit),
+        '(P) password: ' .. config_lt.opts.need_password .. ' ',
         '', 'contiune (C)'
     }
+    local width = floor(vim.o.columns * 0.4)
     local size = { width = 0.4, height = 0.3, }
     local marks = U.get_marks(#lines)
     local buf, win = select.new_select('Select options', 'center', size,
-            { lines, marks },
+            { lines, marks, true },
             function(_, n_option)
                 toggle_buf_option(n_option - 1, false)
             end
@@ -121,13 +122,20 @@ function M.select_buf_item(row)
     api.nvim_set_option_value('cursorline', true, { buf = buf })
     api.nvim_win_set_cursor(win, { 2, 0 })
 
-    -- select option
-    U.keyset(buf, 'C', function()
-        toggle_buf_option(5, false)
-    end)
+    -- highlight contiune option
+    local hl_start = floor(width / 2 - #lines[6] / 2) - 1
+    local hl_end = floor(hl_start + #lines[6]) + 2
+
+    api.nvim_buf_add_highlight(buf, ns, 'CursorLine', 5, hl_start, hl_end)
+    api.nvim_buf_add_highlight(buf, ns, 'Comment', 5, hl_start + 9, hl_end)
+
+    -- select by keymap
+    U.keyset(buf, 'S', function() toggle_buf_option(1, false) end)
+    U.keyset(buf, 'E', function() toggle_buf_option(2, false) end)
+    U.keyset(buf, 'P', function() toggle_buf_option(3, false) end)
+    U.keyset(buf, 'C', function() toggle_buf_option(5, false) end)
 end
 
---- FIXME: fix line length, tf it's everywhere????!!!
 local function select_buffer()
     clear_buffers()
 
@@ -165,13 +173,22 @@ local function receive_buffer()
     local lines, options_start, hl = D.convert_buf_info(shared_buffers)
 
     local size = { width = 0.35, height = 0.7 }
-    local buf, win = select.new_select(
-            'Receive buffers',
-            'right',
-            size, { lines, options_start },
+    local buf, win = select.new_select('Receive buffers', 'right', size,
+            { lines, options_start },
             function(_, n_option)
-                -- TODO: implement selecting buffer
+                -- TODO: implement - password, save
                 is_menu_visible = false
+                clear_buffers()
+
+                local got_buf = shared_buffers[n_option]
+                local buf = api.nvim_create_buf(true, false)
+
+                api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(got_buf.content, '\n'))
+                api.nvim_buf_set_name(buf, got_buf.buffer_name)
+                api.nvim_set_option_value('modifiable', got_buf.allow_edit, { buf = buf })
+
+                print(got_buf.buffer_name)
+                api.nvim_win_set_buf(0, buf)
             end
         )
 
@@ -179,7 +196,6 @@ local function receive_buffer()
     api.nvim_set_option_value('cursorline', true, { buf = buf })
 
     -- highlight buffer name
-    local ns = api.nvim_create_namespace('BufEx')
     for _, v in pairs(hl) do
         api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 0, -1)
     end

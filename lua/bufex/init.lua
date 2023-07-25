@@ -11,7 +11,9 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
+-- TODO: fix keymaps to be user entered
 -- TODO: real-time connection?
+-- TODO: add syntax and language support
 
 ---@param opts? Configuration
 function M.setup(opts)

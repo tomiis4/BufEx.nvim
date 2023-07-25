@@ -100,7 +100,7 @@ function D.convert_buf_info(data)
         local icon, color = get_icon(file)
 
         table.insert(lines, ' ' .. icon .. ' ' .. file)
-        table.insert(options_start, #lines)
+        table.insert(options_start, #lines - 1)
         table.insert(hl, { #lines - 1, color })
 
         local name = ' ' .. v.client_name

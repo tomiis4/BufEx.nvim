@@ -30,11 +30,11 @@ end
 ---@param title string
 ---@param position 'left'|'right'|'center'
 ---@param size Size
----@param content table<table<string>, table<number>> -- 1) val, 2) val start
+---@param content table<table<string>, table<number>, boolean> -- 1) val, 2) val start, 3) center
 ---@param callback fun(option: string, n_option: number)
 ---@return number, number
 function M.new_select(title, position, size, content, callback)
-    content[1] = U.center_lines(content[1])
+    content[1] = content[3] and U.center_lines(content[1]) or content[1]
     local buf, win = U.setup_win_buf(title, position, size, content[1])
 
     -- configure win and register it to `input_screens`
