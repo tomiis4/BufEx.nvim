@@ -11,9 +11,16 @@
 ---@field need_password Option default 'always'
 ---@field server Server
 
+---@class OptsKeymap
+---@field toggle_save string default 'S'
+---@field toggle_edit string default 'E'
+---@field toggle_password string default 'P'
+---@field continue string default 'C'
+
 ---@class Keymap
 ---@field quit string default 'q'
 ---@field next_window string default 'n'
+---@field opts OptsKeymap
 
 ---@class LocalTransfer
 ---@field name string|nil default nil (name will be generated random)
@@ -52,6 +59,13 @@ local cfg = {
         keymap = {
             quit = 'q',
             next_window = 'n',
+
+            opts = {
+                toggle_save = 'S',
+                toggle_edit = 'E',
+                toggle_password = 'P',
+                continue = 'C',
+            }
         }
     }
 }

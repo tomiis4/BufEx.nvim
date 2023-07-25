@@ -99,18 +99,21 @@ end
 function M.select_buf_item(row)
     clear_buffers()
 
+    local keys = config.keymap.opts
     local line = row or 0
-    selected_buf = selected_buf == nil and available_buffers[line] or selected_buf
+    selected_buf = selected_buf or available_buffers[line]
 
     local lines = {
-        '', '(S) allow save: ' .. tostring(config_lt.opts.allow_save),
-        '(E) allow edit: ' .. tostring(config_lt.opts.allow_edit),
-        '(P) password: ' .. config_lt.opts.need_password .. ' ',
-        '', 'contiune (C)'
+        '',
+        '(' .. keys.toggle_save .. ') allow save: ' .. tostring(config_lt.opts.allow_save),
+        '(' .. keys.toggle_edit .. ') allow edit: ' .. tostring(config_lt.opts.allow_edit),
+        '(' .. keys.toggle_password .. ') password: ' .. config_lt.opts.need_password .. ' ',
+        '', 'continue('.. keys.continue ..')'
     }
     local width = floor(vim.o.columns * 0.4)
     local size = { width = 0.4, height = 0.3, }
     local marks = U.get_marks(#lines)
+
     local buf, win = select.new_select('Select options', 'center', size,
             { lines, marks, true },
             function(_, n_option)
@@ -122,7 +125,7 @@ function M.select_buf_item(row)
     api.nvim_set_option_value('cursorline', true, { buf = buf })
     api.nvim_win_set_cursor(win, { 2, 0 })
 
-    -- highlight contiune option
+    -- highlight continue option
     local hl_start = floor(width / 2 - #lines[6] / 2) - 1
     local hl_end = floor(hl_start + #lines[6]) + 2
 
@@ -130,10 +133,10 @@ function M.select_buf_item(row)
     api.nvim_buf_add_highlight(buf, ns, 'Comment', 5, hl_start + 9, hl_end)
 
     -- select by keymap
-    U.keyset(buf, 'S', function() toggle_buf_option(1, false) end)
-    U.keyset(buf, 'E', function() toggle_buf_option(2, false) end)
-    U.keyset(buf, 'P', function() toggle_buf_option(3, false) end)
-    U.keyset(buf, 'C', function() toggle_buf_option(5, false) end)
+    U.keyset(buf, keys.toggle_save, function() toggle_buf_option(1, false) end)
+    U.keyset(buf, keys.toggle_edit, function() toggle_buf_option(2, false) end)
+    U.keyset(buf, keys.toggle_password, function() toggle_buf_option(3, false) end)
+    U.keyset(buf, keys.continue, function() toggle_buf_option(5, false) end)
 end
 
 local function select_buffer()
@@ -158,7 +161,6 @@ local function select_buffer()
     api.nvim_set_option_value('number', true, { buf = buf })
 
     -- highlight icons
-    local ns = api.nvim_create_namespace('BufEx')
     for _, v in pairs(hl) do
         api.nvim_buf_add_highlight(buf, ns, v[2], v[1], 1, 3)
     end
@@ -176,6 +178,7 @@ local function receive_buffer()
     local buf, win = select.new_select('Receive buffers', 'right', size,
             { lines, options_start },
             function(_, n_option)
+                -- TODO: make new separated function for this
                 -- TODO: implement - password, save
                 is_menu_visible = false
                 clear_buffers()

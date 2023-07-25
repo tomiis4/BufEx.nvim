@@ -12,6 +12,7 @@ local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
 -- TODO: fix keymaps to be user entered
+-- TODO: fix exit window on click on another win
 -- TODO: real-time connection?
 -- TODO: add syntax and language support
 
