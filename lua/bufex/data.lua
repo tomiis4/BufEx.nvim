@@ -1,4 +1,3 @@
--- local U = require('bufex.utils')
 local D = {}
 
 D.names = { 'Lion', 'Elephant', 'Tiger', 'Giraffe', 'Monkey', 'Dolphin', 'Penguin', 'Koala', 'Cheetah', 'Gorilla' }
@@ -24,41 +23,42 @@ D.cmd_events = { 'BufEnter', 'BufLeave', 'WinClosed', 'WinEnter' }
 
 ---@param position 'left'|'right'|'center'
 ---@param size Size width-height in %
-function D.get_win_size(position, size)
+function D.get_win_position(position, size)
     local height = vim.o.lines
     local width = vim.o.columns
-    local ceil = math.ceil
+    local floor = math.floor
 
     if position == 'left' then
         return {
-            width = ceil(width * size.width),
-            height = ceil(height * size.height),
-            row = ceil(height * ((1 - size.height) / 4)),
-            col = ceil(width / 2 - size.width * width)
+            width = floor(width * size.width),
+            height = floor(height * size.height),
+            row = floor(height * ((1 - size.height) / 4)),
+            col = floor(width / 2 - size.width * width)
         }
     end
 
     if position == 'right' then
         return {
-            width = ceil(width * size.width),
-            height = ceil(height * size.height),
-            row = ceil(height * ((1 - size.height) / 4)),
-            col = ceil(width / 2 - size.width * width + width * size.width + 3)
+            width = floor(width * size.width),
+            height = floor(height * size.height),
+            row = floor(height * ((1 - size.height) / 4)),
+            col = floor(width / 2 - size.width * width + width * size.width + 3)
         }
     end
 
     -- center is default
     return {
-        width = ceil(width * size.width),
-        height = ceil(height * size.height),
-        row = ceil(height * ((1 - size.height) / 4)),
-        col = ceil(width / 2 - size.width * width / 2)
+        width = floor(width * size.width),
+        height = floor(height * size.height),
+        row = floor((height - (height * 0.5)) / 2) - 1,
+        col = floor(width / 2 - size.width * width / 2)
     }
 end
 
 --- convert shadred buffers to one array
 ---@param data Buffers[]
----@return table main
+---@return table options
+---@return table options_start
 ---@return table hl
 function D.convert_buf_info(data)
     ---@param data_buf Buffers
@@ -91,33 +91,35 @@ function D.convert_buf_info(data)
         return dev_icons.get_icon(file, ext, { default = true })
     end
 
-    local main = {}
+    local lines = {}
+    local options_start = {}
     local hl = {}
 
     for k, v in pairs(data) do
         local file = v.buffer_name
         local icon, color = get_icon(file)
 
-        table.insert(main, ' ' .. icon .. ' ' .. file)
-        table.insert(hl, { #main - 1, color })
+        table.insert(lines, ' ' .. icon .. ' ' .. file)
+        table.insert(options_start, #lines - 1)
+        table.insert(hl, { #lines - 1, color })
 
         local name = ' ' .. v.client_name
-        local opts = '󱃕 ' .. get_buf_opts_info(v)
-        local password = v.password and '󰒃 password' or nil
+        local opts = get_buf_opts_info(v) and ('󱃕 ' .. get_buf_opts_info(v)) or nil
+        local password = v.password ~= 'nil' and '󰒃 password' or nil
 
         for _, val in pairs({ name, opts, password }) do
             if val then
-                table.insert(main, '    ' .. val)
+                table.insert(lines, '    ' .. val)
             end
         end
 
         -- add extra space at the end
         if k ~= #data then
-            table.insert(main, '')
+            table.insert(lines, '')
         end
     end
 
-    return main, hl
+    return lines, options_start, hl
 end
 
 return D

@@ -32,6 +32,22 @@ function U.remove_key(tbl, key)
     return main
 end
 
+---@param range number
+---@return table
+function U.get_marks(range)
+    local main = {}
+
+    for i = 0, range do
+        table.insert(main, i)
+    end
+
+    return main
+end
+
+function U.wrap(s, wrap)
+    return wrap .. s .. wrap
+end
+
 ---@param buf number
 ---@param key string
 ---@param action string|function
@@ -39,9 +55,11 @@ end
 ---@param opts table?
 function U.keyset(buf, key, action, mode, opts)
     opts = opts or { nowait = true, silent = true }
+    opts['buffer'] = buf
+
     mode = mode or 'n'
 
-    api.nvim_buf_set_keymap(buf, mode, key, action, opts)
+    vim.keymap.set(mode, key, action, opts)
 end
 
 ---@return string
@@ -67,6 +85,20 @@ function U.get_icon(file)
     end
 
     return dev_icons.get_icon(file, ext, { default = true })
+end
+
+---@param lines table<string>
+---@return table<string>
+function U.center_lines(lines)
+    local width = math.floor(vim.o.columns * 0.4)
+    local main = {}
+
+    for _, v in pairs(lines) do
+        local center = U.wrap(v, (' '):rep((width - #v) / 2))
+        table.insert(main, center)
+    end
+
+    return main
 end
 
 ---@return table buffers
@@ -107,6 +139,8 @@ function U.get_all_buffers()
     return buffers, hl, buffers_id
 end
 
+local active_windows = {} ---@type Window[]
+
 ---@param title string
 ---@param position 'left'|'right'|'center'
 ---@param size Size width-height in %
@@ -118,7 +152,7 @@ function U.setup_win_buf(title, position, size, lines)
     local buf = api.nvim_create_buf(false, true)
     api.nvim_buf_set_lines(buf, 0, -1, true, lines)
 
-    local pos = D.get_win_size(position, size)
+    local pos = D.get_win_position(position, size)
 
     -- create window
     local win_opts = {
@@ -146,9 +180,25 @@ function U.setup_win_buf(title, position, size, lines)
     end
     api.nvim_set_option_value('winhighlight', 'FloatBorder:Normal', { win = win })
 
-    -- add keymaps
-    U.keyset(buf, float.keymap.quit, ':BufexToggle<cr>')
+    -- add keymap for quit
+    U.keyset(buf, float.keymap.quit, function()
+        -- clean windows/buffers
+        for _, v in pairs(active_windows) do
+            local a_win, a_buf = v[1], v[2]
 
+            if a_win ~= nil and api.nvim_win_is_valid(a_win) then
+                api.nvim_win_close(a_win, true)
+            end
+
+            if a_buf ~= nil and api.nvim_buf_is_valid(a_buf) then
+                api.nvim_buf_delete(a_buf, { force = true })
+            end
+        end
+
+        active_windows = {}
+    end)
+
+    table.insert(active_windows, { win, buf })
     return buf, win
 end
 

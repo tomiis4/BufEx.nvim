@@ -1,4 +1,4 @@
----@alias Option 'always'|'never'|'ask'
+---@alias Option 'always'|'never'
 ---@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
 
 ---@class Server
@@ -8,13 +8,19 @@
 ---@class Opts
 ---@field allow_edit boolean default true
 ---@field allow_save boolean default false
----@field need_password Option default 'ask'
+---@field need_password Option default 'always'
 ---@field server Server
 
+---@class OptsKeymap
+---@field toggle_save string default 'S'
+---@field toggle_edit string default 'E'
+---@field toggle_password string default 'P'
+---@field continue string default 'C'
+
 ---@class Keymap
----@field select string default '<CR>'
 ---@field quit string default 'q'
 ---@field next_window string default 'n'
+---@field opts OptsKeymap
 
 ---@class LocalTransfer
 ---@field name string|nil default nil (name will be generated random)
@@ -39,7 +45,7 @@ local cfg = {
         opts = {
             allow_edit = true,
             allow_save = false,
-            need_password = 'ask',
+            need_password = 'always',
             server = {
                 port = 4210,
                 host = '127.0.0.1'
@@ -51,9 +57,15 @@ local cfg = {
         winblend = 0,
         icons = true,
         keymap = {
-            select = '<CR>',
             quit = 'q',
             next_window = 'n',
+
+            opts = {
+                toggle_save = 'S',
+                toggle_edit = 'E',
+                toggle_password = 'P',
+                continue = 'C',
+            }
         }
     }
 }

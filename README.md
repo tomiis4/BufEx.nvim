@@ -10,7 +10,7 @@
 <hr>
 
 <h3 align="center"> <img src='#'> </h3>
-<h6 align="center"> Colorscheme: dogrun; Font: JetBrainsMono NF </h6>
+<h6 align="center"> Colorscheme: dogrun; Font: Hurmit NerdFont Mono </h6>
 
 <hr>
 
@@ -76,7 +76,7 @@ require('bufex').setup()
 ```lua
 require('hypersonic').setup({
     local_transfer = {
-        ---@type string|nil nil = name will be ranom selected
+        ---@type string|nil nil = name will be random selected
         name = nil,
 
         ---@type string|nil password will need to be entered each time
@@ -85,8 +85,8 @@ require('hypersonic').setup({
             allow_edit = true,
             allow_save = false,
 
-            ---@type 'always'|'never'|'ask'
-            need_password = 'ask',
+            ---@type 'always'|'never'
+            need_password = 'always',
             server = {
                 port = 4200,
                 host = '127.0.0.1'
@@ -103,8 +103,14 @@ require('hypersonic').setup({
         ---@type boolean allow nvim-web-devicons
         icons = true,
         keymap = {
-            select = '<CR>',
-            quit = 'q'
+            next_window = 'n',
+            quit = 'q',
+            opts = {
+                toggle_save = 'S',
+                toggle_edit = 'E',
+                toggle_password = 'P',
+                continue = 'C',
+            }
         }
     }
 }
@@ -116,22 +122,28 @@ require('hypersonic').setup({
 
 ## File order
 ```
-|   LICENSE
-|   README.md
+|  📄 LICENSE
+|  📄 README.md
 |
-\---lua
-    \---bufex
-        |   config.lua
-        |   init.lua
-        |   utils.lua
-        |
-        +---local
-        |       client.lua
-        |       local.lua
-        |       server.lua
-        |
-        \---ui
-                float.lua
++-- 📁 lua
+|    \-- 📁 bufex
+|       |  📄 config.lua
+|       |  📄 data.lua
+|       |  📄 init.lua
+|       |  📄 utils.lua
+|       |
+|       +-- 📁 local
+|       |      📄 client.lua
+|       |      📄 local.lua
+|       |      📄 server.lua
+|       |
+|       \-- 📁 ui
+|              📄 float.lua
+|              📄 input.lua
+|              📄 select.lua
+|
+\-- 📁 plugin
+       📄 bufex.lua
 ```
 
 

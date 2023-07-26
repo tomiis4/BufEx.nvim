@@ -11,6 +11,11 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
+-- TODO: fix keymaps to be user entered
+-- TODO: fix exit window on click on another win
+-- TODO: real-time connection?
+-- TODO: add syntax and language support
+
 ---@param opts? Configuration
 function M.setup(opts)
     ---@type Configuration
@@ -19,7 +24,7 @@ function M.setup(opts)
     -- setup data
     U.setup(config)
     LT.setup(config.local_transfer)
-    UI.setup(config.float)
+    UI.setup(config.float, config.local_transfer)
 end
 
 function M.toggle()
@@ -40,7 +45,10 @@ function M.toggle()
     LT.get_buffers(vim.schedule_wrap(function(res, err)
         if err then
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
+
             is_server_on = false
+            is_enabled = false
+
             return
         end
 
