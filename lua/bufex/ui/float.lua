@@ -19,7 +19,6 @@ local config = require('bufex.config').float ---@type Float
 local config_lt = require('bufex.config').local_transfer ---@type LocalTransfer
 
 local api = vim.api
-local is_menu_visible = false
 local selected_buf = nil
 
 local ns = api.nvim_create_namespace('BufEx')
@@ -54,10 +53,10 @@ local function toggle_buf_option(row, instant_send)
     local password = config_lt.opts.need_password
 
     clear_buffers()
-    is_menu_visible = false
+    vim.g.is_enabled_bufex = false
 
     if row == 5 or instant_send then
-        if instant_send or password == 'never' then
+        if instant_send or password == 'never' or config_lt.password then
             if password == 'never' then
                 config_lt.password = 'nil'
             end
@@ -93,8 +92,6 @@ local function toggle_buf_option(row, instant_send)
     end
 end
 
---- nwm how it works -v
---- TODO: only second time it show all send buffers
 ---@param row number?
 function M.select_buf_item(row)
     clear_buffers()
@@ -108,7 +105,7 @@ function M.select_buf_item(row)
         '(' .. keys.toggle_save .. ') allow save: ' .. tostring(config_lt.opts.allow_save),
         '(' .. keys.toggle_edit .. ') allow edit: ' .. tostring(config_lt.opts.allow_edit),
         '(' .. keys.toggle_password .. ') password: ' .. config_lt.opts.need_password .. ' ',
-        '', 'continue('.. keys.continue ..')'
+        '', 'continue ('.. keys.continue ..')'
     }
     local width = floor(vim.o.columns * 0.4)
     local size = { width = 0.4, height = 0.3, }
@@ -190,7 +187,6 @@ local function receive_buffer()
                 api.nvim_buf_set_name(buf, got_buf.buffer_name)
                 api.nvim_set_option_value('modifiable', got_buf.allow_edit, { buf = buf })
 
-                print(got_buf.buffer_name)
                 api.nvim_win_set_buf(0, buf)
             end
         )

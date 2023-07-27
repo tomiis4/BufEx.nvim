@@ -1,7 +1,6 @@
 local config = require('bufex.config')
 
 local is_server_on = false
-local is_enabled = false
 
 local D = require('bufex.data')
 local U = require('bufex.utils')
@@ -11,7 +10,6 @@ local M = {}
 local LT = require('bufex.local.local')
 local LT_server = config.local_transfer.opts.server
 
--- TODO: fix keymaps to be user entered
 -- TODO: fix exit window on click on another win
 -- TODO: real-time connection?
 -- TODO: add syntax and language support
@@ -28,15 +26,15 @@ function M.setup(opts)
 end
 
 function M.toggle()
-    is_enabled = not is_enabled
+    vim.g.is_enabled_bufex = not vim.g.is_enabled_bufex
 
-    if not is_server_on then
+    if not is_server_on and LT_server.local_server then
         LT.listen(LT_server.host, LT_server.port)
         is_server_on = true
     end
 
     -- close server
-    if not is_enabled then
+    if not vim.g.is_enabled_bufex then
         UI.toggle_window({})
         return
     end
@@ -47,12 +45,12 @@ function M.toggle()
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
 
             is_server_on = false
-            is_enabled = false
+            vim.g.is_enabled_bufex = false
 
             return
         end
 
-        vim.print(vim.inspect(res))
+        vim.g.is_enabled_bufex = true
         UI.toggle_window(res)
     end))
 end

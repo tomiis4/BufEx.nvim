@@ -205,6 +205,7 @@ end
 ---@param cfg Configuration
 function U.setup(cfg)
     config = cfg
+    float = cfg.float
 end
 
 return U

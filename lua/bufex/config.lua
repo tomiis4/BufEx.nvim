@@ -2,6 +2,7 @@
 ---@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
 
 ---@class Server
+---@field local_server boolean default true
 ---@field port number default 4200
 ---@field host string default '127.0.0.1'
 
@@ -47,6 +48,7 @@ local cfg = {
             allow_save = false,
             need_password = 'always',
             server = {
+                local_server = true,
                 port = 4200,
                 host = '127.0.0.1'
             }

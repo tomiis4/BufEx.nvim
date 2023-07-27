@@ -15,9 +15,11 @@
 <hr>
 
 
-## Usage
-1. method
-    - explanation
+## Usage Local
+1. sending buffer
+    - open BufEx menu
+    - select "Send Buffer" window (press `n` to switch between windows)
+    - select buffer which you want to send and toggle options
     - <details>
         <summary> preview </summary>
         <img src='#'>
@@ -93,8 +95,9 @@ require('hypersonic').setup({
             ---@type 'always'|'never'
             need_password = 'always',
             server = {
+                local_transfer = true,
                 port = 4200,
-                host = '127.0.0.1'
+                host = '127.0.0.1',
             }
         }
     },
