@@ -26,6 +26,7 @@
 ## Available language servers
     - Lua (build-in as local transfer)
     - TypeScript
+    - GoLang
 
 ## Installation
 
@@ -147,7 +148,10 @@ require('hypersonic').setup({
 |              📄 select.lua
 |
 \-- 📁 plugin
-       📄 bufex.lua
+|      📄 go/main.go
+|
+\-- 📁 servers
+|      📄 ts/main.ts
 ```
 
 
