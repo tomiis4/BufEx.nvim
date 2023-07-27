@@ -10,7 +10,7 @@ local server = nil
 ---@param port number
 ---@return string|nil
 function M.listen(host, port)
-    ---@type Buffers[]
+    ---@type table<table<string, number>>
     local shared_buffers = {}
     local connections = {}
 
@@ -44,21 +44,22 @@ function M.listen(host, port)
                     -- send all buffers
                     local buf_data = {}
 
-                    -- ignore client id
+                    -- ignore client id (idx 2)
                     for _, buf in pairs(shared_buffers) do
-                        buf = U.remove_key(buf, 'client_id')
-
-                        table.insert(buf_data, buf)
+                        table.insert(buf_data, buf[1])
                     end
 
-                    client:write(vim.inspect(buf_data))
+                    client:write('{' .. table.concat(buf_data, ',') .. '}')
                 else
-                    local decoder = loadstring or load
-                    local decoded_data = decoder('return ' .. data)()
+                    -- local decoder = loadstring or load
+                    -- local decoded_data = decoder('return ' .. data)()
 
-                    decoded_data['client_id'] = client:fileno()
-                    table.insert(shared_buffers, decoded_data)
+                    -- decoded_data['client_id'] = client:fileno()
+                    table.insert(shared_buffers, {
+                        data, client:fileno()
+                    })
 
+                    -- TODO: implement real-time conenction
                     -- for _, user in pairs(connections) do
                     --     user:write('Someone connected to the server')
                     -- end
@@ -69,7 +70,7 @@ function M.listen(host, port)
                 -- delete buffer client send, when they leave
                 client:close(function()
                     shared_buffers = vim.tbl_filter(function(buf)
-                            return buf['client_id'] ~= client_id
+                            return buf[2] ~= client_id
                         end, shared_buffers)
                 end)
             end

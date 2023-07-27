@@ -47,7 +47,7 @@ local cfg = {
             allow_save = false,
             need_password = 'always',
             server = {
-                port = 4210,
+                port = 4200,
                 host = '127.0.0.1'
             }
         }

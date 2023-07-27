@@ -6,7 +6,7 @@ local M = {}
 
 ---@param host string
 ---@param port number
----@param data 'get'|string
+---@param data 'GET'|string
 ---@param callback fun(res: Buffers[], err: string|nil)
 ---@return table|nil
 function M.send_data(host, port, data, callback)

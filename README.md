@@ -23,6 +23,10 @@
         <img src='#'>
     </details>
 
+## Available language servers
+    - Lua (build-in as local transfer)
+    - TypeScript
+
 ## Installation
 
 <details>

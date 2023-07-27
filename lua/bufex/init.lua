@@ -52,6 +52,7 @@ function M.toggle()
             return
         end
 
+        vim.print(vim.inspect(res))
         UI.toggle_window(res)
     end))
 end
