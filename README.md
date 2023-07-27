@@ -22,11 +22,27 @@
     - select buffer which you want to send and toggle options
     - <details>
         <summary> preview </summary>
-        <img src='#'>
+        ()[https://cdn.discordapp.com/attachments/772927831441014847/1134199701755932732/send-buffer.mp4]
     </details>
 
-## Available language servers
-    - Lua (build-in as local transfer)
+2. sending buffer
+    - open BufEx menu
+    - press enter on buffer which you want open
+    - <details>
+        <summary> preview </summary>
+        ()[https://cdn.discordapp.com/attachments/772927831441014847/1134201998695223383/select-buffer.mp4]
+    </details>
+
+
+## Usage Global
+1. host server
+    - create or select TCP (server)[https://github.com/tomiis4/BufEx.nvim/tree/main/servers] and host it
+    - in configuration change `port`, `host` and `local_server`
+    - follow instructions from (Usage Local)[#usage-local]
+
+
+## Available transfer servers
+    - Lua (build-in)
     - TypeScript
     - GoLang
 
