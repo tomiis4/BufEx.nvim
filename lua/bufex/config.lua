@@ -23,7 +23,7 @@
 ---@field next_window string default 'n'
 ---@field opts OptsKeymap
 
----@class LocalTransfer
+---@class Transfer
 ---@field name string|nil default nil (name will be generated random)
 ---@field password string|nil default nil (password will be generated random)
 ---@field opts Opts
@@ -35,12 +35,12 @@
 ---@field keymap Keymap
 
 ---@class Configuration
----@field local_transfer LocalTransfer
+---@field transfer Transfer
 ---@field float Float
 
 ---@type Configuration
 local cfg = {
-    local_transfer = {
+    transfer = {
         name = nil,
         password = nil,
         opts = {

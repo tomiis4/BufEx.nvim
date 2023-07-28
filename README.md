@@ -9,28 +9,30 @@
 
 <hr>
 
-<h3 align="center"> <img src='#'> </h3>
-<h6 align="center"> Colorscheme: dogrun; Font: Hurmit NerdFont Mono </h6>
+<h3 align='center'> <img src='https://media.discordapp.net/attachments/772927831441014847/1134530149480681472/image.png?width=993&height=497'> </h3>
+<h6 align='center'> Colorscheme: dogrun; Font: Hurmit NerdFont Mono </h6>
 
 <hr>
 
 
 ## Usage Local
-1. sending buffer
+1. send buffer
     - open BufEx menu
     - select "Send Buffer" window (press `n` to switch between windows)
     - select buffer which you want to send and toggle options
     - <details>
         <summary> preview </summary>
-        ()[https://cdn.discordapp.com/attachments/772927831441014847/1134199701755932732/send-buffer.mp4]
+        
+        ![send-buffer.gif](https://im2.ezgif.com/tmp/ezgif-2-af39152c3a.gif)
     </details>
 
-2. sending buffer
+2. select buffer
     - open BufEx menu
     - press enter on buffer which you want open
     - <details>
         <summary> preview </summary>
-        ()[https://cdn.discordapp.com/attachments/772927831441014847/1134201998695223383/select-buffer.mp4]
+        
+        ![select-buffer.gif](https://im2.ezgif.com/tmp/ezgif-2-59ba9c5440.gif)
     </details>
 
 
@@ -42,9 +44,9 @@
 
 
 ## Available transfer servers
-    - Lua (build-in)
-    - TypeScript
-    - GoLang
+- Lua (build-in)
+- TypeScript
+- GoLang
 
 ## Installation
 
@@ -179,9 +181,9 @@ require('hypersonic').setup({
 <table>
     <tbody>
         <tr>
-            <td align="center" valign="top" width="14.28%">
-                <a href="https://github.com/tomiis4">
-                <img src="https://avatars.githubusercontent.com/u/87276646?v=4" width="50px;" alt="tomiis4"/><br />
+            <td align='center' valign='top' width='14.28%'>
+                <a href='https://github.com/tomiis4'>
+                <img src='https://avatars.githubusercontent.com/u/87276646?v=4' width='50px;' alt='tomiis4'/><br />
                 <sub><b> tomiis4 </b></sub><br />
                 <sup> founder </sup>
                 </a><br/>

@@ -8,7 +8,7 @@ local UI = require('bufex.ui.float')
 local M = {}
 
 local LT = require('bufex.local.local')
-local LT_server = config.local_transfer.opts.server
+local T_server = config.transfer.opts.server
 
 -- TODO: fix exit window on click on another win
 -- TODO: real-time connection?
@@ -21,15 +21,15 @@ function M.setup(opts)
 
     -- setup data
     U.setup(config)
-    LT.setup(config.local_transfer)
-    UI.setup(config.float, config.local_transfer)
+    LT.setup(config.transfer)
+    UI.setup(config.float, config.transfer)
 end
 
 function M.toggle()
     vim.g.is_enabled_bufex = not vim.g.is_enabled_bufex
 
-    if not is_server_on and LT_server.local_server then
-        LT.listen(LT_server.host, LT_server.port)
+    if not is_server_on and T_server.local_server then
+        LT.listen(T_server.host, T_server.port)
         is_server_on = true
     end
 

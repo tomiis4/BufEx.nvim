@@ -16,7 +16,7 @@ local shared_buffers = {} ---@type Buffers[]
 local available_buffers = {} ---@type table<number> buffers in showed order
 
 local config = require('bufex.config').float ---@type Float
-local config_lt = require('bufex.config').local_transfer ---@type LocalTransfer
+local config_lt = require('bufex.config').transfer ---@type Transfer
 
 local api = vim.api
 local selected_buf = nil
@@ -239,7 +239,7 @@ function M.toggle_window(received_data)
 end
 
 ---@param cfg Float
----@param cfg_lt LocalTransfer
+---@param cfg_lt Transfer
 function M.setup(cfg, cfg_lt)
     config = cfg
     config_lt = cfg_lt

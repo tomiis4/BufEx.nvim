@@ -1,6 +1,6 @@
 local client = require('bufex.local.client')
 local server = require('bufex.local.server')
-local config = require('bufex.config').local_transfer
+local config = require('bufex.config').transfer
 
 local api = vim.api
 local U = require('bufex.utils')
@@ -36,7 +36,7 @@ function M.get_buffers(callback)
 end
 
 ---@param buf_id number
----@param cfg LocalTransfer
+---@param cfg Transfer
 function M.send_buffer(buf_id, cfg)
     config = vim.tbl_deep_extend('force', config, cfg)
     local opts = config.opts
@@ -74,7 +74,7 @@ end
 M.listen = server.listen
 M.close = server.close
 
----@param cfg LocalTransfer
+---@param cfg Transfer
 function M.setup(cfg)
     config = cfg
 end
