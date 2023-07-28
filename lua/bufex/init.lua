@@ -7,7 +7,7 @@ local U = require('bufex.utils')
 local UI = require('bufex.ui.float')
 local M = {}
 
-local LT = require('bufex.local.local')
+local T = require('bufex.local.local')
 local T_server = config.transfer.opts.server
 
 -- TODO: fix exit window on click on another win
@@ -18,10 +18,11 @@ local T_server = config.transfer.opts.server
 function M.setup(opts)
     ---@type Configuration
     config = vim.tbl_deep_extend('force', config, opts or {})
+    T_server = config.transfer.opts.server
 
     -- setup data
     U.setup(config)
-    LT.setup(config.transfer)
+    T.setup(config.transfer)
     UI.setup(config.float, config.transfer)
 end
 
@@ -29,7 +30,7 @@ function M.toggle()
     vim.g.is_enabled_bufex = not vim.g.is_enabled_bufex
 
     if not is_server_on and T_server.local_server then
-        LT.listen(T_server.host, T_server.port)
+        T.listen(T_server.host, T_server.port)
         is_server_on = true
     end
 
@@ -40,7 +41,7 @@ function M.toggle()
     end
 
     -- get data from server
-    LT.get_buffers(vim.schedule_wrap(function(res, err)
+    T.get_buffers(vim.schedule_wrap(function(res, err)
         if err then
             vim.notify(D.messages['ERROR']['RECEIVE'] .. ': ' .. err)
 

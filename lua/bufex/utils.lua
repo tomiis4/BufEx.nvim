@@ -183,6 +183,8 @@ function U.setup_win_buf(title, position, size, lines)
     -- add keymap for quit
     U.keyset(buf, float.keymap.quit, function()
         -- clean windows/buffers
+        vim.g.is_enabled_bufex = false
+
         for _, v in pairs(active_windows) do
             local a_win, a_buf = v[1], v[2]
 

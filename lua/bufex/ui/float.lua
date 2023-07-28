@@ -55,6 +55,7 @@ local function toggle_buf_option(row, instant_send)
     clear_buffers()
     vim.g.is_enabled_bufex = false
 
+    -- FIXME: when is password `nil` and you enter it's not nil anymore
     if row == 5 or instant_send then
         if instant_send or password == 'never' or config_lt.password then
             if password == 'never' then
@@ -63,12 +64,13 @@ local function toggle_buf_option(row, instant_send)
 
             require('bufex.local.local').send_buffer(selected_buf, config_lt)
             require('bufex').toggle()
-        elseif password then
+        elseif password == 'always' then
             -- ask for password
 
             clear_buffers()
             input.new_input('Enter password', function(res)
-                config_lt.password = res == '' and nil or res
+                config_lt.password = res == '' and 'nil' or res
+
                 toggle_buf_option( -1, true)
             end)
         end
@@ -105,7 +107,7 @@ function M.select_buf_item(row)
         '(' .. keys.toggle_save .. ') allow save: ' .. tostring(config_lt.opts.allow_save),
         '(' .. keys.toggle_edit .. ') allow edit: ' .. tostring(config_lt.opts.allow_edit),
         '(' .. keys.toggle_password .. ') password: ' .. config_lt.opts.need_password .. ' ',
-        '', 'continue ('.. keys.continue ..')'
+        '', 'continue (' .. keys.continue .. ')'
     }
     local width = floor(vim.o.columns * 0.4)
     local size = { width = 0.4, height = 0.3, }
@@ -150,7 +152,7 @@ local function select_buffer()
             { lines, marks },
             function(_, n_option)
                 M.select_buf_item(n_option)
-                is_menu_visible = false
+                vim.g.is_enabled_bufex = false
             end
         )
 
@@ -167,27 +169,50 @@ local function select_buffer()
         U.keyset(buf, tostring(i), '<cmd> ' .. i .. ' <cr>')
     end
 end
-
+-- TODO: implement save
 local function receive_buffer()
+    local function open_buf(buf_data)
+        local buf = api.nvim_create_buf(true, false)
+
+        api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(buf_data.content, '\n'))
+        api.nvim_buf_set_name(buf, buf_data.buffer_name)
+        api.nvim_set_option_value('modifiable', buf_data.allow_edit, { buf = buf })
+
+        api.nvim_win_set_buf(0, buf)
+    end
+
+    ---@param n_option number|nil
+    local function select_buf(n_option)
+        local got_buf = shared_buffers[n_option]
+        clear_buffers()
+
+        if not got_buf then
+            vim.notify('Please select valid buffer')
+            vim.g.is_enabled_bufex = false
+            return
+        end
+
+        if got_buf.password and got_buf.password ~= 'nil' then
+            input.new_input('Enter password', function(res)
+                if got_buf.password == res then
+                    open_buf(got_buf)
+                end
+            end)
+            return
+        end
+
+        open_buf(got_buf)
+    end
+
+
     local lines, options_start, hl = D.convert_buf_info(shared_buffers)
 
     local size = { width = 0.35, height = 0.7 }
     local buf, win = select.new_select('Receive buffers', 'right', size,
             { lines, options_start },
             function(_, n_option)
-                -- TODO: make new separated function for this
-                -- TODO: implement - password, save
-                is_menu_visible = false
-                clear_buffers()
-
-                local got_buf = shared_buffers[n_option]
-                local buf = api.nvim_create_buf(true, false)
-
-                api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(got_buf.content, '\n'))
-                api.nvim_buf_set_name(buf, got_buf.buffer_name)
-                api.nvim_set_option_value('modifiable', got_buf.allow_edit, { buf = buf })
-
-                api.nvim_win_set_buf(0, buf)
+                vim.g.is_enabled_bufex = false
+                select_buf(n_option)
             end
         )
 
@@ -201,7 +226,7 @@ local function receive_buffer()
 end
 
 function M.redraw()
-    if is_menu_visible then
+    if vim.g.is_enabled_bufex then
         clear_buffers()
 
         select_buffer()
@@ -213,11 +238,10 @@ end
 ---@param received_data Buffers[]?
 function M.toggle_window(received_data)
     received_data = received_data or {}
-    is_menu_visible = not is_menu_visible
 
     clear_buffers()
 
-    if is_menu_visible then
+    if vim.g.is_enabled_bufex then
         shared_buffers = #received_data == 0 and shared_buffers or received_data
 
         select_buffer()
