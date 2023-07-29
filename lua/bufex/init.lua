@@ -1,5 +1,4 @@
 local config = require('bufex.config')
-
 local is_server_on = false
 
 local D = require('bufex.data')
@@ -10,7 +9,6 @@ local M = {}
 local T = require('bufex.local.local')
 local T_server = config.transfer.opts.server
 
--- TODO: fix exit window on click on another win
 
 ---@param opts? Configuration
 function M.setup(opts)
