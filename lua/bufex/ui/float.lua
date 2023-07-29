@@ -178,6 +178,10 @@ local function receive_buffer()
         api.nvim_buf_set_name(buf, buf_data.buffer_name)
         api.nvim_set_option_value('modifiable', buf_data.allow_edit, { buf = buf })
 
+        local ft = vim.filetype.match { buf = buf }
+        api.nvim_set_option_value('filetype', ft, { buf = buf })
+        api.nvim_set_option_value('syntax', ft, { buf = buf })
+
         api.nvim_win_set_buf(0, buf)
     end
 

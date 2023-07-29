@@ -11,8 +11,6 @@ local T = require('bufex.local.local')
 local T_server = config.transfer.opts.server
 
 -- TODO: fix exit window on click on another win
--- TODO: real-time connection?
--- TODO: add syntax and language support
 
 ---@param opts? Configuration
 function M.setup(opts)
