@@ -1,5 +1,5 @@
 <h1 align='center'>
-    !NOT READY FOR USE!<br>Buffer Exchange
+    Buffer Exchange
 </h1>
 
 <p align='center'>
@@ -23,7 +23,7 @@
     - <details>
         <summary> preview </summary>
         
-        ![send-buffer.gif](https://im2.ezgif.com/tmp/ezgif-2-af39152c3a.gif)
+        ![send-buffer](https://github.com/tomiis4/BufEx.nvim/assets/87276646/ed2c7b18-f870-4b06-8986-4dd986dbd5a4)
     </details>
 
 2. select buffer
@@ -32,7 +32,7 @@
     - <details>
         <summary> preview </summary>
         
-        ![select-buffer.gif](https://im2.ezgif.com/tmp/ezgif-2-59ba9c5440.gif)
+        ![select-buffer](https://github.com/tomiis4/BufEx.nvim/assets/87276646/9dca69b4-b4ee-4e55-b8d5-e033b88c9b30)
     </details>
 
 
@@ -146,6 +146,20 @@ require('hypersonic').setup({
 </details>
 
 
+## Creating own transfer server
+- create 
+    - TCP server
+    - variable
+        - `array[array[got_data, client_id]]`
+- got message `GET`
+    - send all `got_data` from variable joined by `,` and all wrapped in `{}`
+    - TS example: `'{' + variable.map((buf) => buf[0]).join(',') + '}'`
+- other message
+    - to variable push `[got_data, client_id]`, client\_id can be anything unique
+- user disconected (optional)
+    - delte from variable array with client\_id
+
+
 ## File order
 ```
 |  📄 LICENSE
@@ -169,10 +183,11 @@ require('hypersonic').setup({
 |              📄 select.lua
 |
 \-- 📁 plugin
-|      📄 go/main.go
+|      📄 bufex.lua
 |
 \-- 📁 servers
 |      📄 ts/main.ts
+|      📄 go/main.go
 ```
 
 
