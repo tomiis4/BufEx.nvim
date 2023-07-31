@@ -192,11 +192,8 @@ function U.setup_win_buf(title, position, size, lines)
     api.nvim_set_option_value('modifiable', false, { buf = buf })
     api.nvim_set_option_value('buflisted', false, { buf = buf })
 
-    -- add hl
-    for i = 0, #lines do
-        api.nvim_buf_add_highlight(buf, ns, 'Normal', i, 0, -1)
-    end
-    api.nvim_set_option_value('winhighlight', 'FloatBorder:Normal', { win = win })
+    -- add highlights
+    api.nvim_set_option_value('winhighlight', 'Normal:Normal,FloatBorder:Normal', { win = win })
 
     -- add keymap for quit
     U.keyset(buf, float.keymap.quit, function()
