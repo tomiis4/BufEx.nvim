@@ -148,6 +148,24 @@ local active_windows = {} ---@type Window[]
 ---@return number buffer
 ---@return number window
 function U.setup_win_buf(title, position, size, lines)
+    local function clear_windows()
+        vim.g.is_enabled_bufex = false
+
+        for _, v in pairs(active_windows) do
+            local win, buf = v[1], v[2]
+
+            if win ~= nil and api.nvim_win_is_valid(win) then
+                api.nvim_win_close(win, true)
+            end
+
+            if buf ~= nil and api.nvim_buf_is_valid(buf) then
+                api.nvim_buf_delete(buf, { force = true })
+            end
+        end
+
+        active_windows = {}
+    end
+
     -- setup buffer
     local buf = api.nvim_create_buf(false, true)
     api.nvim_buf_set_lines(buf, 0, -1, true, lines)
@@ -174,29 +192,30 @@ function U.setup_win_buf(title, position, size, lines)
     api.nvim_set_option_value('modifiable', false, { buf = buf })
     api.nvim_set_option_value('buflisted', false, { buf = buf })
 
-    -- add hl
-    for i = 0, #lines do
-        api.nvim_buf_add_highlight(buf, ns, 'Normal', i, 0, -1)
-    end
-    api.nvim_set_option_value('winhighlight', 'FloatBorder:Normal', { win = win })
+    -- add highlights
+    api.nvim_set_option_value('winhighlight', 'Normal:Normal,FloatBorder:Normal', { win = win })
 
     -- add keymap for quit
     U.keyset(buf, float.keymap.quit, function()
-        -- clean windows/buffers
-        for _, v in pairs(active_windows) do
-            local a_win, a_buf = v[1], v[2]
+        clear_windows()
+    end)
 
-            if a_win ~= nil and api.nvim_win_is_valid(a_win) then
-                api.nvim_win_close(a_win, true)
-            end
+    -- if you select different window that float
+    api.nvim_create_autocmd('WinEnter', {
+        group = 'BufEx',
+        callback = function()
+            local selected = vim.tbl_filter(function(v)
+                    local a_win = v[1]
+                    local new_win = api.nvim_get_current_win()
 
-            if a_buf ~= nil and api.nvim_buf_is_valid(a_buf) then
-                api.nvim_buf_delete(a_buf, { force = true })
+                    return new_win == a_win
+                end, active_windows)
+
+            if #selected == 0 then
+                clear_windows()
             end
         end
-
-        active_windows = {}
-    end)
+    })
 
     table.insert(active_windows, { win, buf })
     return buf, win
@@ -205,6 +224,7 @@ end
 ---@param cfg Configuration
 function U.setup(cfg)
     config = cfg
+    float = cfg.float
 end
 
 return U

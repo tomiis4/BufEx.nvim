@@ -2,6 +2,7 @@
 ---@alias BorderType 'none'|'single'|'double'|'rounded'|'solid'|'shadow'|table
 
 ---@class Server
+---@field local_server boolean default true
 ---@field port number default 4200
 ---@field host string default '127.0.0.1'
 
@@ -22,7 +23,7 @@
 ---@field next_window string default 'n'
 ---@field opts OptsKeymap
 
----@class LocalTransfer
+---@class Transfer
 ---@field name string|nil default nil (name will be generated random)
 ---@field password string|nil default nil (password will be generated random)
 ---@field opts Opts
@@ -34,12 +35,12 @@
 ---@field keymap Keymap
 
 ---@class Configuration
----@field local_transfer LocalTransfer
+---@field transfer Transfer
 ---@field float Float
 
 ---@type Configuration
 local cfg = {
-    local_transfer = {
+    transfer = {
         name = nil,
         password = nil,
         opts = {
@@ -47,7 +48,8 @@ local cfg = {
             allow_save = false,
             need_password = 'always',
             server = {
-                port = 4210,
+                local_server = true,
+                port = 4200,
                 host = '127.0.0.1'
             }
         }

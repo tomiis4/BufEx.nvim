@@ -37,31 +37,28 @@ function M.new_input(title, callback, value)
     -- configure win and register it to `input_screens`
     api.nvim_set_option_value('modifiable', true, { buf = buf })
     api.nvim_set_current_win(win)
+    api.nvim_win_set_cursor(win, {1, #value})
+
     table.insert(input_screens, { win, buf })
 
     -- insert & confirm
     vim.cmd('startinsert')
 
-    -- listening for I/O
-    U.keyset(buf, '<cr>', '<esc>', 'i')
-    api.nvim_create_autocmd({ 'InsertChange', 'CursorMovedI', 'ModeChanged' }, {
-        buffer = buf,
-        callback = function(e)
-            value = api.nvim_buf_get_lines(0, 0, 1, false)[1]
+    U.keyset(buf, '<cr>', function()
+        value = api.nvim_buf_get_lines(0, 0, 1, false)[1]
 
-            if e.event == 'ModeChanged' and vim.fn.mode() ~= 'i' then
-                vim.cmd('stopinsert')
-                clean_screens()
-                callback(value)
-            end
-        end
-    })
+        vim.cmd('stopinsert')
+        clean_screens()
+        callback(value)
+    end, 'i')
 
     -- autocmd for resizing
     api.nvim_create_autocmd('VimResized', {
         buffer = buf,
         group = 'BufEx',
         callback = function()
+            value = api.nvim_buf_get_lines(0, 0, 1, false)[1]
+
             clean_screens()
             M.new_input(title, callback, value)
         end
