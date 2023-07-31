@@ -38,9 +38,9 @@
 
 ## Usage Global
 1. host server
-    - create or select TCP (server)[https://github.com/tomiis4/BufEx.nvim/tree/main/servers] and host it
+    - create or select TCP [server](https://github.com/tomiis4/BufEx.nvim/tree/main/servers) and host it
     - in configuration change `port`, `host` and `local_server`
-    - follow instructions from (Usage Local)[#usage-local]
+    - follow instructions from [Usage Local](#usage-local)
 
 
 ## Available transfer servers
@@ -100,7 +100,7 @@ require('bufex').setup()
 
 ```lua
 require('hypersonic').setup({
-    local_transfer = {
+    transfer = {
         ---@type string|nil nil = name will be random selected
         name = nil,
 
@@ -108,12 +108,12 @@ require('hypersonic').setup({
         password = nil,
         opts = {
             allow_edit = true,
-            allow_save = false,
+            allow_save = false, -- NOTE: WIP
 
             ---@type 'always'|'never'
             need_password = 'always',
             server = {
-                local_transfer = true,
+                local_server = true,
                 port = 4200,
                 host = '127.0.0.1',
             }
@@ -139,14 +139,13 @@ require('hypersonic').setup({
             }
         }
     }
-}
-)
+})
 ```
 
 </details>
 
 
-## Creating own transfer server
+## Create own transfer server
 - create 
     - TCP server
     - variable
