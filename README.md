@@ -9,7 +9,7 @@
 
 <hr>
 
-<h3 align='center'> <img src='https://media.discordapp.net/attachments/772927831441014847/1134530149480681472/image.png?ex=66a3d58a&is=66a2840a&hm=247683ba2c1f6e4f1a244f0fad75fe79e2c2e620c8edc1796fb17fbe21b46805&=&format=webp&quality=lossless&width=1322&height=662'> </h3>
+<h3 align='center'> <img src='https://github.com/user-attachments/assets/902acdfc-108a-4515-927d-7847b0298cf6'> </h3>
 <h6 align='center'> Colorscheme: dogrun; Font: Hurmit NerdFont Mono </h6>
 
 <hr>
